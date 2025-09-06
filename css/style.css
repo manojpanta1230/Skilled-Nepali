@@ -216,10 +216,6 @@
     color: var(--bs-secondary) !important;
 }
 
-.navbar-light .navbar-brand img {
-
-    transition: .5s;
-}
 
 
 
@@ -268,6 +264,12 @@
         padding: 10px 20px;
         border: 1px solid var(--bs-primary) !important;
         color: var(--bs-primary);
+       
+        
+    }
+    .navbar{
+        display: flex;
+        flex-wrap: nowrap;
     }
 
     .navbar-light .navbar-collapse {
