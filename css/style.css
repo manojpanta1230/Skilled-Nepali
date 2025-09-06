@@ -282,9 +282,7 @@
         color: var(--bs-dark) !important;
     }
 
-    .navbar-light .navbar-brand img {
-        max-height: 45px;
-    }
+
 }
 
 @media (min-width: 991.98px) {
@@ -297,7 +295,7 @@
     .navbar-light .navbar-nav .nav-link::before {
         position: absolute;
         content: "";
-        top: 30px;
+        top: 100px;
         bottom: 30px;
         left: 0px;
         width: 100%;
