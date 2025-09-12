@@ -199,21 +199,18 @@
     position: relative;
     margin-right: 25px;
     padding: 35px 0;
-    color: var(--bs-primary) !important;
-    font-size: 17px;
+    color: var(--bs-white) !important;
+    font-size: 20px;
     font-weight: 400;
     outline: none;
     transition: .5s;
 }
 
-.sticky-top .navbar-light .navbar-nav .nav-link {
-    padding: 20px 0;
-    color: var(--bs-primary) !important;
-}
+
 
 .navbar-light .navbar-nav .nav-link:hover,
 .navbar-light .navbar-nav .nav-link.active {
-    color: var(--bs-secondary) !important;
+    color: var(--bs-white) !important;
 }
 
 
@@ -269,7 +266,11 @@
     }
     .navbar{
         display: flex;
-        flex-wrap: nowrap;
+        flex-wrap:wrap;
+    }
+    .navbar .navbar-brand img{
+       position: relative;
+     left: -58px;
     }
 
     .navbar-light .navbar-collapse {
@@ -281,7 +282,7 @@
     .sticky-top .navbar-light .navbar-nav .nav-link {
         padding: 10px 0;
         margin-left: 0;
-        color: var(--bs-dark) !important;
+        color: var(--bs-white) !important;
     }
 
 
@@ -289,7 +290,7 @@
 
 @media (min-width: 991.98px) {
     .sticky-top .navbar-light {
-        background: var(--bs-light) !important;
+        background: var(--bs-secondary) !important;
     }
 
     /*** Top and Bottom borders go out ***/
