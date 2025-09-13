@@ -5,16 +5,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
-// Database connection
-$servername = "localhost";
-$username = "root"; 
-$password = ""; 
-$dbname = "skillednepali";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Database Connection failed: " . $conn->connect_error);
-}
+require "db_connect.php";
 
 // Fetch all messages
 $result = $conn->query("SELECT * FROM messages ORDER BY created_at DESC");
