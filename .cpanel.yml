@@ -1,9 +1,9 @@
-# .cpanel.yml for PHP site deployment
+# .cpanel.yml
 deployment:
   tasks:
-    # Absolute path to your public_html folder (inside your cPanel user home)
+    # Set the deployment directory to public_html
     - export DEPLOY_DIR=/home/g8d9uc0f8e0i/public_html
-    
-    # Copy all files from repo to public_html, excluding .git
+
+    # Copy all files from the repo to public_html, excluding .git
     - /usr/bin/rsync -av --exclude='.git' ./ $DEPLOY_DIR
-# CHANGES
+#CHANGES IN COMMENT 
