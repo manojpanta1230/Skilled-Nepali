@@ -515,6 +515,9 @@
                 <label for="message">Message</label>
             </div>
         </div>
+          <div class="col-12">
+              <div class="g-recaptcha" data-sitekey="6Ld5MuYrAAAAAMrnuT5FvEwERdGal5x33Q_8YR0Q"></div>
+        </div>
         <div class="col-12">
             <button type="submit" class="btn btn-primary w-100 py-3">Send Message</button>
         </div>
@@ -623,6 +626,8 @@
     <!-- JavaScript Libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <script src="lib/wow/wow.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>

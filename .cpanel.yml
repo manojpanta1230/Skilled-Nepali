@@ -1,0 +1,8 @@
+# .cpanel.yml for PHP site deployment
+deployment:
+  tasks:
+    # The directory on your server where your website lives
+    - export DEPLOY_DIR=~/public_html
+    
+    # Copy all files from the repo to public_html
+    - cp -r * $DEPLOY_DIR
