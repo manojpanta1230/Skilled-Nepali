@@ -476,7 +476,7 @@
                             <h5 class="sub-title text-primary pe-3">Let’s Connect</h5>
                         </div>
                         <h1 class="display-5 mb-4">Send Your Message</h1>
-                 <form method="POST" action="contact.php">
+<form id="contactForm" method="POST" action="contact.php">
     <div class="row g-4">
         <div class="col-lg-12 col-xl-6">
             <div class="form-floating">
@@ -501,27 +501,38 @@
                 <input type="text" class="form-control" name="apply" id="apply" placeholder="CountryName">
                 <label for="apply">Apply for</label>
             </div>
-        </div>  
+        </div>
         <div class="col-12">
             <div class="form-floating">
-                <input type="text" class="form-control" name="address" id="subject" placeholder="Address">
-                <label for="subject">Your Address</label>
+                <input type="text" class="form-control" name="address" id="address" placeholder="Address">
+                <label for="address">Your Address</label>
             </div>
         </div>
         <div class="col-12">
             <div class="form-floating">
-                <textarea class="form-control" name="message" id="message" placeholder="Leave a message here" style="height: 160px"></textarea>
+                <textarea class="form-control" name="message" id="message" placeholder="Leave a message here" style="height: 160px" required></textarea>
                 <label for="message">Message</label>
             </div>
         </div>
-          <div class="col-12">
-              <div class="g-recaptcha" data-sitekey="6Ld5MuYrAAAAAMrnuT5FvEwERdGal5x33Q_8YR0Q"></div>
+        <div class="col-12">
+            <div class="g-recaptcha" data-sitekey="6Ld5MuYrAAAAAMrnuT5FvEwERdGal5x33Q_8YR0Q"></div>
         </div>
         <div class="col-12">
             <button type="submit" class="btn btn-primary w-100 py-3">Send Message</button>
         </div>
     </div>
 </form>
+
+<!-- Toast container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="toast" class="toast align-items-center text-white bg-danger border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toastBody"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
 
                     </div>
                 </div>
@@ -643,6 +654,57 @@ function showPage(page) {
         }
     });
 }
+document.getElementById('contactForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const recaptcha = grecaptcha.getResponse();
+
+    // Name validation: letters & spaces only
+    if(!/^[A-Za-z\s]+$/.test(name) || name === ''){
+        showToast('Name must contain only letters and cannot be empty!');
+        return;
+    }
+
+    // Email validation
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        showToast('Please enter a valid email address!');
+        return;
+    }
+
+    // Phone validation: exactly 10 digits
+    if(phone !== '' && !/^\d{10}$/.test(phone)){
+        showToast('Phone number must be exactly 10 digits!');
+        return;
+    }
+
+    // Message validation: non-empty, letters, numbers, basic punctuation
+    if(!/^[A-Za-z0-9.,?!\s]+$/.test(message) || message === ''){
+        showToast('Message must be properly formatted and cannot be empty!');
+        return;
+    }
+
+    // reCAPTCHA validation
+    if(recaptcha.length === 0){
+        showToast('Please verify that you are not a robot!');
+        return;
+    }
+
+    // If all validations pass, submit the form
+    this.submit();
+});
+
+// Toast helper function
+function showToast(message){
+    const toastEl = document.getElementById('toast');
+    document.getElementById('toastBody').innerText = message;
+    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+    toast.show();
+}
+
 </script>
 
     <!-- Template Javascript -->
