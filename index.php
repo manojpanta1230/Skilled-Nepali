@@ -256,7 +256,6 @@
                         <h5 class="sub-title text-primary px-3">Why Choose Us</h5>
                     </div>
                     <h1 class="display-5 mb-4">Offer Tailor Made Services That Our Client Requires</h1>
-                    <p class="mb-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat deleniti amet at atque sequi quibusdam cumque itaque repudiandae temporibus, eius nam mollitia voluptas maxime veniam necessitatibus saepe in ab? Repellat!</p>
                 </div>
                 <div class="row g-4 justify-content-center text-center">
                     <div class="col-md-6 col-lg-6 col-xl-3 wow fadeInUp" data-wow-delay="0.1s">
