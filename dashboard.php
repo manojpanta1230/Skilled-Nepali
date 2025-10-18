@@ -1,92 +1,206 @@
-<?php
-session_start();
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
-    exit;
-}
-require "db_connect.php";
-// Count total messages
-$msg_result = $conn->query("SELECT COUNT(*) AS total_messages FROM messages");
-$total_messages = $msg_result->fetch_assoc()['total_messages'];
-
-// Count unique apply criteria
-$criteria_result = $conn->query("SELECT COUNT(DISTINCT apply) AS total_criteria FROM messages");
-$total_criteria = $criteria_result->fetch_assoc()['total_criteria'];
-
-$conn->close();
+<?php 
+include 'portal_header.php'; 
+require_login(); 
+$u = current_user(); 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- important for mobile -->
-    <title>Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .navbar {
-            background: #00A098;
-        }
-        .dashboard-card {
-            border-radius: 15px;
-            transition: transform 0.2s ease-in-out;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            color: #6c757d;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
 
-    <!-- Navbar -->
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark px-3">
-    <a class="navbar-brand fw-bold text-white" href="#">⚙️ Admin Dashboard</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
-        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="container mt-5">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h2 class="mb-3 text-primary">
+        Welcome, <?= htmlspecialchars($u['company']); ?>!
+      </h2>
+      <h5 class="text-muted mb-4">
+        Role: <span class="badge bg-info text-dark"><?= htmlspecialchars($u['role']); ?></span>
+      </h5>
 
-    <!-- Collapsible links -->
-    <div class="collapse navbar-collapse justify-content-end" id="navbarContent">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="messages.php" class="nav-link btn  text-light btn-sm me-2 my-2 my-lg-0 text-center">View Messages</a>
-            </li>
-            <li class="nav-item">
-                <a href="logout.php" class="nav-link btn  text-light btn-sm my-2 my-lg-0 text-center">Logout</a>
-            </li>
-        </ul>
-    </div>
-</nav>
+      <!-- ADMIN SECTION -->
+      <?php if (is_admin()): ?>
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark fw-bold">
+            Admin Controls
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Manage users, job posts, and training center courses.</p>
+            <a href="admin_panel.php" class="btn btn-warning">
+              <i class="bi bi-gear-fill"></i> Go to Admin Panel
+            </a>
+          </div>
+        </div>
+      <?php endif; ?>
 
+      <!-- EMPLOYER SECTION -->
+      <?php if (is_employer()): 
+        // Fetch applications for jobs posted by this employer
+        $employer_id = $u['id'];
+        $sql = "
+            SELECT a.*, j.title AS job_title, u.name AS jobseeker_name 
+            FROM applications a
+            JOIN jobs j ON a.job_id = j.id
+            JOIN users u ON a.user_id = u.id
+            WHERE j.employer_id = ?
+            ORDER BY a.created_at DESC
+        ";
+        $stmt = $mysqli->prepare($sql);
+        $stmt->bind_param("i", $employer_id);
+        $stmt->execute();
+        $apps = $stmt->get_result();
+      ?>
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-primary text-white fw-bold">
+            Employer Dashboard
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Manage your company’s job postings and see all applications received.</p>
+            <a href="post_job.php" class="btn btn-success me-2">
+              <i class="bi bi-plus-circle"></i> Post a New Job
+            </a>
+            <a href="my_jobs.php" class="btn btn-outline-primary me-2">
+              <i class="bi bi-briefcase"></i> View My Jobs
+            </a>
 
-    <!-- Main Content -->
-    <div class="container py-5">
-        <h2 class="mb-4 text-center fw-bold">Welcome, Admin 🎉</h2>
+            <!-- Applications Table -->
+            <div class="card mt-3">
+              <div class="card-header bg-warning text-dark fw-bold">
+                Job Applications Received
+              </div>
+              <div class="card-body">
+                <?php if($apps->num_rows > 0): ?>
+                  <table class="table table-bordered">
+                    <thead class="table-light">
+                      <tr>
+                        <th>#</th>
+                        <th>Job Title</th>
+                        <th>Applicant</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Resume / Cover Letter</th>
+                        <th>Photo</th>
+                        <th>Applied At</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <?php $i=1; while($a=$apps->fetch_assoc()): ?>
+                      <tr>
+                        <td><?= $i ?></td>
+                        <td><?= htmlspecialchars($a['job_title']) ?></td>
+                        <td><?= htmlspecialchars($a['jobseeker_name']) ?></td>
+                        <td><?= htmlspecialchars($a['email']) ?></td>
+                        <td><?= htmlspecialchars($a['phone']) ?></td>
+                        <td><?= htmlspecialchars($a['address'] ?? '') ?></td>
+                        <td>
+                          <?php if(!empty($a['resume'])): ?>
+                            <a href="<?= htmlspecialchars($a['resume']) ?>" target="_blank">View Resume</a>
+                          <?php else: ?>
+                            <span class="text-muted">No Resume</span>
+                          <?php endif; ?>
+                          <?php if(!empty($a['notes'])): ?>
+                            <br><small>Notes: <?= nl2br(htmlspecialchars($a['notes'])) ?></small>
+                          <?php endif; ?>
+                        </td>
+                        <td>
+                          <?php if(!empty($a['photo'])): ?>
+                            <img src="<?= htmlspecialchars($a['photo']) ?>" alt="Photo" width="50" class="rounded-circle">
+                          <?php else: ?>
+                            <span class="text-muted">No Photo</span>
+                          <?php endif; ?>
+                        </td>
+                        <td><?= htmlspecialchars($a['created_at']) ?></td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#appModal<?= $i ?>">
+                            <i class="fa-solid fa-eye"></i> View
+                          </button>
+                        </td>
+                      </tr>
 
-        <div class="row g-4">
-            <div class="col-12 col-md-6">
-                <div class="card dashboard-card shadow-sm text-center p-4">
-                    <h4>Total Messages</h4>
-                    <p class="display-5 text-primary fw-bold"><?php echo $total_messages; ?></p>
-                </div>
+                      <!-- Modal -->
+                      <div class="modal fade" id="appModal<?= $i ?>" tabindex="-1" aria-labelledby="appModalLabel<?= $i ?>" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="appModalLabel<?= $i ?>">Application Details</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="row">
+                                <div class="col-md-8">
+                                  <p><b>Name:</b> <?= htmlspecialchars($a['jobseeker_name']) ?></p>
+                                  <p><b>Email:</b> <?= htmlspecialchars($a['email']) ?></p>
+                                  <p><b>Phone:</b> <?= htmlspecialchars($a['phone']) ?></p>
+                                  <p><b>Address:</b> <?= htmlspecialchars($a['address'] ?? '') ?></p>
+                                  <p><b>Applied For:</b> <?= htmlspecialchars($a['job_title']) ?></p>
+                                  <?php if(!empty($a['notes'])): ?>
+                                    <p><b>Notes:</b> <?= nl2br(htmlspecialchars($a['notes'])) ?></p>
+                                  <?php endif; ?>
+                                  <?php if(!empty($a['resume'])): ?>
+                                    <p><a href="<?= htmlspecialchars($a['resume']) ?>" target="_blank" class="btn btn-outline-success btn-sm">View Resume</a></p>
+                                  <?php endif; ?>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                  <?php if(!empty($a['photo'])): ?>
+                                    <img src="<?= htmlspecialchars($a['photo']) ?>" class="img-fluid rounded" alt="Photo">
+                                  <?php else: ?>
+                                    <span class="text-muted">No Photo</span>
+                                  <?php endif; ?>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <?php $i++; endwhile; ?>
+                    </tbody>
+                  </table>
+                <?php else: ?>
+                  <p class="text-muted">No applications yet for your jobs.</p>
+                <?php endif; ?>
+              </div>
             </div>
-            <div class="col-12 col-md-6">
-                <div class="card dashboard-card shadow-sm text-center p-4">
-                    <h4>Total Criteria</h4>
-                    <p class="display-5 text-success fw-bold"><?php echo $total_criteria; ?></p>
-                </div>
-            </div>
+
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <!-- TRAINING CENTER SECTION -->
+      <?php if (is_training_center()): ?>
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-success text-white fw-bold">
+            Training Center Dashboard
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Add and manage your available courses and training programs.</p>
+            <a href="post_course.php" class="btn btn-success me-2">
+              <i class="bi bi-journal-plus"></i> Add New Course
+            </a>
+            <a href="my_courses.php" class="btn btn-outline-success">
+              <i class="bi bi-book"></i> My Courses
+            </a>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <!-- JOBSEEKER SECTION -->
+      <?php if (is_jobseeker()): ?>
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-info text-white fw-bold">
+            Jobseeker Dashboard
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Browse job listings and apply for opportunities that fit your skills.</p>
+            <a href="jobs.php" class="btn btn-primary">
+              <i class="bi bi-search"></i> Browse Jobs
+            </a>
+          </div>
+        </div>
+      <?php endif; ?>
+
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </div>
+</div>
 
-
+<?php include 'portal_footer.php'; ?>
