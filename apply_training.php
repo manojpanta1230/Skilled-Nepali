@@ -9,27 +9,32 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Only allow jobseekers
+// Allow only jobseekers
 if (!is_logged_in() || !is_jobseeker()) {
     echo '<div class="alert alert-warning text-center mt-5">
-            ⚠️ Only jobseekers can apply for jobs. Please login as a jobseeker.
+            ⚠️ Only jobseekers can apply for training courses. Please login as a jobseeker.
           </div>';
     include 'portal_footer.php';
     exit;
 }
 
-// Check if job ID is provided
-if (empty($_GET['job_id'])) {
-    echo '<div class="alert alert-danger text-center mt-5">Invalid job selected.</div>';
+// Check if course ID is provided
+if (empty($_GET['course_id'])) {
+    echo '<div class="alert alert-danger text-center mt-5">Invalid training course selected.</div>';
     include 'portal_footer.php';
     exit;
 }
 
-$job_id = intval($_GET['job_id']);
-$job = $mysqli->query("SELECT * FROM jobs WHERE id=$job_id AND status='approved'")->fetch_assoc();
+$course_id = intval($_GET['course_id']);
+$course = $mysqli->query("
+    SELECT c.*, u.email AS trainer_email, u.company AS trainer_company
+    FROM courses c
+    JOIN users u ON c.training_center_id = u.id
+    WHERE c.id = $course_id AND c.status='approved'
+")->fetch_assoc();
 
-if (!$job) {
-    echo '<div class="alert alert-danger text-center mt-5">Job not found or not available.</div>';
+if (!$course) {
+    echo '<div class="alert alert-danger text-center mt-5">Course not found or not available.</div>';
     include 'portal_footer.php';
     exit;
 }
@@ -43,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $notes   = $mysqli->real_escape_string(trim($_POST['notes'] ?? ''));
 
     // Ensure upload directories exist
-    $resume_dir = 'uploads/resumes/';
-    $photo_dir  = 'uploads/photos/';
+    $resume_dir = 'uploads/training_resumes/';
+    $photo_dir  = 'uploads/training_photos/';
     if (!is_dir($resume_dir)) mkdir($resume_dir, 0755, true);
     if (!is_dir($photo_dir)) mkdir($photo_dir, 0755, true);
 
@@ -72,50 +77,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Insert application including address
+    // Insert application
     $stmt = $mysqli->prepare("
-        INSERT INTO applications 
-        (job_id, user_id, name, email, phone, address, resume, photo, notes, created_at)
+        INSERT INTO course_applications 
+        (course_id, user_id, name, email, phone, address, resume, photo, notes, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
-    $stmt->bind_param("iisssssss", $job_id, $_SESSION['user_id'], $name, $email, $phone, $address, $resume_path, $photo_path, $notes);
+    $stmt->bind_param("iisssssss", $course_id, $_SESSION['user_id'], $name, $email, $phone, $address, $resume_path, $photo_path, $notes);
 
     if ($stmt->execute()) {
         echo '<div class="alert alert-success text-center mt-4">
-                ✅ Your application has been submitted successfully!<br>
+                ✅ Your training application has been submitted successfully!<br>
                 ' . ($resume_path ? '<a href="'.$resume_path.'" target="_blank">View Uploaded Resume</a>' : '') . '<br>
                 ' . ($photo_path ? '<a href="'.$photo_path.'" target="_blank">View Uploaded Photo</a>' : '') . '
               </div>';
 
-        // --- Send Email Notification to Employer & Admin ---
+        // --- Send Email Notification to Training Center & Admin ---
         try {
-            // Fetch employer email
-            $emp_stmt = $mysqli->prepare("SELECT email, company FROM users WHERE id = ?");
-            $emp_stmt->bind_param("i", $job['employer_id']);
-            $emp_stmt->execute();
-            $employer = $emp_stmt->get_result()->fetch_assoc();
-            $emp_stmt->close();
-
             $admin_email = "pantamanoj08@gmail.com"; // admin email
 
             $mail = new PHPMailer(true);
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'pantamanoj08@gmail.com'; // your email
+            $mail->Username = 'pantamanoj08@gmail.com'; // your gmail
             $mail->Password = 'qjms snqf uzjn pvdc';    // app password
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
             $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal');
-            $mail->addAddress($employer['email'], $employer['company']); // employer
+            $mail->addAddress($course['trainer_email'], $course['trainer_company']); // training center
             $mail->addAddress($admin_email, 'Admin'); // admin
 
             $mail->isHTML(true);
-            $mail->Subject = "New Job Application Received";
+            $mail->Subject = "New Training Course Application Received";
             $mail->Body = "
-                <p>Dear {$employer['company']},</p>
-                <p>A new application has been submitted for the job: <b>{$job['title']}</b>.</p>
+                <p>Dear {$course['trainer_company']},</p>
+                <p>A new application has been submitted for the training course: <b>{$course['title']}</b>.</p>
                 <p><b>Applicant Details:</b></p>
                 <ul>
                     <li>Name: {$name}</li>
@@ -131,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->send();
 
         } catch (Exception $e) {
-            error_log("Mailer Error: " . $mail->ErrorInfo);
+            error_log("Mailer Error (Training Apply): " . $mail->ErrorInfo);
         }
 
     } else {
@@ -143,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="container mt-5 mb-5">
-    <h3 class="text-center text-primary mb-4">Apply for: <?= htmlspecialchars($job['title']) ?></h3>
+    <h3 class="text-center text-success mb-4">Apply for Training: <?= htmlspecialchars($course['title']) ?></h3>
 
     <form method="POST" enctype="multipart/form-data" class="p-4 shadow-lg bg-white rounded-3">
         <div class="row g-3">

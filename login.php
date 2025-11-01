@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="col-md-6 mx-auto mt-5">
+  <div class="col-md-6 mx-auto mt-5">
   <h3 class="mb-3">Login</h3>
 
   <?php if ($error): ?>
@@ -53,8 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <form method="post">
     <input name="email" type="email" class="form-control mb-2" placeholder="Email" required>
     <input name="password" type="password" class="form-control mb-3" placeholder="Password" required>
+
+    <!-- Forgot Password link on left with spacing -->
+    <div class="mb-3">
+      <a href="forgot_password.php" class="text-decoration-none" style="font-size: 0.9rem;">Forgot Password?</a>
+    </div>
+
     <button class="btn btn-primary w-100" style="background-color:#00A098">Login</button>
   </form>
 </div>
+
 
 <?php include 'portal_footer.php'; ?>

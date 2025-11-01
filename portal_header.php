@@ -1,89 +1,107 @@
-<?php 
-include 'config.php'; // must be included first
-?>
+<?php include 'config.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <link rel="icon" type="image/x-icon" href="img/Logo.png">
   <title>Job Portal</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
   <style>
-    /* Keep navbar height stable */
     .navbar {
+      background-color: #00A098;
       position: sticky;
       top: 0;
-      z-index: 1000;
-      height: 70px; /* fixed navbar height */
-      overflow: visible; /* allows logo to appear bigger */
-    }
-
-    /* ✅ Large logo without stretching navbar */
-    .navbar-brand {
-      position: relative;
-      display: flex;
-      align-items: center;
+      z-index: 1050;
+      transition: all 0.3s ease;
     }
 
     .navbar-brand img {
-      height: 120px;        /* big logo */
+      height: 100px;
       width: auto;
       object-fit: contain;
-      position: absolute;   /* pull it out of navbar height */
-      top: 50%;
-      transform: translateY(-50%);
-      left: 0;
+      transition: 0.3s;
+      margin-left: -10px;
     }
 
-    
     .navbar .container-fluid {
-      padding-left: 130px; /* give room for big logo */
+      padding-left: 110px;
     }
 
-    
-    .navbar-brand img {
-      image-rendering: -webkit-optimize-contrast;
+    @media (max-width: 992px) {
+      .navbar-brand img {
+        height: 70px;
+        margin-left: 0;
+      }
+      .navbar .container-fluid {
+        padding-left: 15px;
+      }
+      .navbar-collapse {
+        background-color: #00A098;
+        border-radius: 0 0 10px 10px;
+      }
+      /* hide desktop login/register in mobile */
+      .desktop-auth {
+        display: none !important;
+      }
+      /* mobile auth div styles */
+      #mobileAuth {
+        background-color: #00A098;
+        display: none;
+        padding: 15px;
+        z-index: 1000;
+        text-align: center;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        gap: 20px;
+      }
+      #mobileAuth .btn {
+        width: 80%;
+        margin-bottom: 10px;
+      }
+    }
+
+    @media (min-width: 993px) {
+      #mobileAuth { display: none !important; }
     }
   </style>
 </head>
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm"  style="background-color:#00A098;">
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
   <div class="container-fluid">
-    <!-- ✅ Fixed logo on the left -->
-    <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+    <a class="navbar-brand fw-bold" href="index.php">
       <img src="img/Logo.png" alt="JobPortal Logo">
     </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
+    <!-- Desktop menu -->
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav align-items-center">
-        <?php if(is_logged_in()): 
+      <ul class="navbar-nav align-items-lg-center">
+        <?php if(is_logged_in()):
               $user = current_user();
               $displayName = !empty($user['company']) ? $user['company'] : $user['name'];
         ?>
-          <!-- 👋 Welcome message inside navbar -->
           <li class="nav-item me-2">
             <span class="nav-link text-white">Welcome, <b><?= htmlspecialchars($displayName) ?></b></span>
           </li>
-
-          <li class="nav-item me-2">
+          <li class="nav-item me-2 desktop-auth">
             <a href="dashboard.php" class="btn btn-outline-light btn-sm">Dashboard</a>
           </li>
-
-          <li class="nav-item">
+          <li class="nav-item desktop-auth">
             <a href="logout.php" class="btn btn-danger btn-sm">Logout</a>
           </li>
-
         <?php else: ?>
-          <li class="nav-item me-2">
+          <li class="nav-item me-2 desktop-auth">
             <a href="login.php" class="btn btn-light btn-sm px-3 rounded-pill">Login</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item desktop-auth">
             <a href="register.php" class="btn btn-warning btn-sm px-3 rounded-pill">Register</a>
           </li>
         <?php endif; ?>
@@ -92,16 +110,51 @@ include 'config.php'; // must be included first
   </div>
 </nav>
 
+<!-- ✅ Separate mobile div for login/register -->
+<div id="mobileAuth">
+  <?php if(is_logged_in()):
+        $user = current_user();
+        $displayName = !empty($user['company']) ? $user['company'] : $user['name'];
+  ?>
+    <a href="dashboard.php" class="btn btn-outline-light btn-sm">Dashboard</a>
+    <a href="logout.php" class="btn btn-danger btn-sm">Logout</a>
+  <?php else: ?>
+    <a href="login.php" class="btn btn-light btn-sm px-3 rounded-pill">Login</a>
+    <a href="register.php" class="btn btn-warning btn-sm px-3 rounded-pill">Register</a>
+  <?php endif; ?>
+</div>
+
 <!-- Main content -->
 <div class="container mt-5">
-  <?php if(is_logged_in()): ?>
- 
-  <?php endif; ?>
-
   <h2 class="text-center mt-4">Latest Jobs</h2>
   <p class="text-center text-muted">Your dream career starts here.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const toggler = document.querySelector(".navbar-toggler");
+  const mobileAuth = document.getElementById("mobileAuth");
+
+  toggler.addEventListener("click", () => {
+    // Toggle visibility on each click
+    if (mobileAuth.style.display === "flex") {
+      mobileAuth.style.display = "none";
+    } else {
+      mobileAuth.style.display = "flex";
+    }
+  });
+
+  // Optional: hide mobileAuth when a link inside it is clicked
+  document.querySelectorAll("#mobileAuth a").forEach(link => {
+    link.addEventListener("click", () => {
+      mobileAuth.style.display = "none";
+    });
+  });
+});
+</script>
+
+
+
 </body>
 </html>
