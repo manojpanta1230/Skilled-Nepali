@@ -20,38 +20,86 @@ $u = current_user();
       </h5>
 
       <!-- USER PROFILE DETAILS SECTION -->
-      <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-light fw-bold">
-          Your Profile Details
-        </div>
-        <div class="card-body">
-          <div class="row align-items-center">
-            <?php if (is_training_center() && !empty($u['photo'])): ?>
-              <div class="col-md-3 text-center mb-3 mb-md-0">
-                <img src="<?= htmlspecialchars($u['photo']) ?>" 
-                     alt="Profile Photo" 
-                     class="img-fluid rounded-circle shadow-sm" 
-                     width="150">
-              </div>
-              <div class="col-md-9">
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light fw-bold">
+        Your Profile Details
+    </div>
+    <div class="card-body">
+        <div class="row align-items-center">
+            <?php 
+            // Show image if exists in DB
+            $user_img = !empty($u['image']) ? $u['image'] : null;
+            if ($user_img): ?>
+                <div class="col-md-3 text-center mb-3 mb-md-0">
+                    <img src="<?= htmlspecialchars($user_img) ?>" 
+                         alt="Profile Image" 
+                         class="img-fluid rounded-circle shadow-sm" 
+                         width="150" height="150" style="object-fit: cover;">
+                </div>
+                <div class="col-md-9">
             <?php else: ?>
-              <div class="col-md-12">
+                <div class="col-md-12">
             <?php endif; ?>
+
                 <p><b>Name / Company:</b> <?= htmlspecialchars($u['company'] ?? $u['name']) ?></p>
                 <p><b>Email:</b> <?= htmlspecialchars($u['email']) ?></p>
                 <?php if(!empty($u['phone'])): ?>
-                  <p><b>Phone:</b> <?= htmlspecialchars($u['phone']) ?></p>
+                    <p><b>Phone:</b> <?= htmlspecialchars($u['phone']) ?></p>
                 <?php endif; ?>
                 <?php if(!empty($u['address'])): ?>
-                  <p><b>Address:</b> <?= htmlspecialchars($u['address']) ?></p>
+                    <p><b>Address:</b> <?= htmlspecialchars($u['address']) ?></p>
                 <?php endif; ?>
                 <?php if(!empty($u['bio'])): ?>
-                  <p><b>Bio:</b> <?= nl2br(htmlspecialchars($u['bio'])) ?></p>
+                    <p><b>Bio:</b> <?= nl2br(htmlspecialchars($u['bio'])) ?></p>
                 <?php endif; ?>
-              </div>
-          </div>
+
+                <!-- Upload form for Employer & Training Center -->
+                <?php if (is_employer() || is_training_center()): ?>
+                    <hr>
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label"><b>Update Logo / Profile Image</b></label>
+                            <input class="form-control" type="file" name="profile_image" id="profile_image" accept="image/*" required>
+                        </div>
+                        <button type="submit" name="upload_image" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload"></i> Upload
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
         </div>
-      </div>
+    </div>
+</div>
+
+
+<?php
+// Handle the image upload
+if (isset($_POST['upload_image']) && isset($_FILES['profile_image'])) {
+    $file = $_FILES['profile_image'];
+    $allowed_types = ['image/jpeg','image/png','image/jpg','image/webp'];
+    
+    if (in_array($file['type'], $allowed_types) && $file['error'] === 0) {
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $new_name = 'uploads/profile_' . $u['id'] . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($file['tmp_name'], $new_name)) {
+            // Update DB
+            $stmt = $mysqli->prepare("UPDATE users SET image = ? WHERE id = ?");
+            $stmt->bind_param("si", $new_name, $u['id']);
+            if ($stmt->execute()) {
+                echo '<div class="alert alert-success mt-2">Profile image updated successfully!</div>';
+                $u['image'] = $new_name; // update current user array
+            }
+            $stmt->close();
+        } else {
+            echo '<div class="alert alert-danger mt-2">Failed to upload image. Try again.</div>';
+        }
+    } else {
+        echo '<div class="alert alert-danger mt-2">Invalid file type. Only JPG, PNG, WEBP allowed.</div>';
+    }
+}
+?>
+
+
 
       <!-- ADMIN SECTION -->
       <?php if (is_admin()): ?>

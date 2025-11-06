@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -342,6 +343,8 @@
     <!-- Countries We Offer End -->
 
 
+
+
     <!-- Testimonial Start -->
     <div class="container-fluid contact overflow-hidden" id="contact">
         <div class="container">
@@ -468,8 +471,6 @@
     <?php include 'component/footer.php';
     ?>
 
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-primary btn-lg-square back-to-top"><i class="fa fa-arrow-up"></i></a>
 
 
     <!-- JavaScript Libraries -->
@@ -549,6 +550,11 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    <!-- WhatsApp Floating Button -->
+<a href="https://wa.me/+97450077249" target="_blank" class="whatsapp-float">
+    <i class="fab fa-whatsapp"></i>
+</a>
+
 </body>
 
 </html>

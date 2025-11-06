@@ -20,13 +20,7 @@
         <a href="#contact" class="nav-item nav-link text-white mx-2">Contact</a>
     <a href="jobs.php" class="nav-item nav-link text-white mx-2">View All Jobs</a>
 
-        <!-- Orange "Post Ad" Button -->
-      <a href="login.php" 
-   class="btn btn-warning text-white fw-semibold ms-3 px-4 py-2 rounded-pill"
-   style="background-color:#FF7A00; border:none; white-space:nowrap;"
-   onclick="event.preventDefault(); alert('You must log in as Employer or Training Center to post an ad!'); window.location.href='login.php';">
-   Post Ad
-</a>
+      
 
 
 <?php
