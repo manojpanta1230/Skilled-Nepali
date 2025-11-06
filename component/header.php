@@ -14,11 +14,11 @@
 
     <div class="collapse navbar-collapse justify-content-end align-items-center" id="navbarCollapse">
       <div class="navbar-nav d-flex align-items-center text-center">
-        <a href="index.html" class="nav-item nav-link text-white mx-2">Home</a>
-        <a href="#about" class="nav-item nav-link text-white mx-2">About</a>
-        <a href="#service" class="nav-item nav-link text-white mx-2">Service</a>
+        <a href="index.php" class="nav-item nav-link text-white mx-2">Home</a>
+        <a href="company.php" class="nav-item nav-link text-white mx-2">Company</a>
+        <a href="job_seeker.php" class="nav-item nav-link text-white mx-2">Candidate</a>
         <a href="#contact" class="nav-item nav-link text-white mx-2">Contact</a>
-<a href="jobs.php" class="nav-item nav-link text-white mx-2">View All Jobs</a>
+    <a href="jobs.php" class="nav-item nav-link text-white mx-2">View All Jobs</a>
 
         <!-- Orange "Post Ad" Button -->
       <a href="login.php" 

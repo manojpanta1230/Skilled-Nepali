@@ -1,10 +1,10 @@
 <?php
 include 'component/header.php';
 
-// Fetch all employers (companies)
-$query = "SELECT id, name, email, company as company_name, image as company_logo,status
+// Fetch only job seekers
+$query = "SELECT id, name, email, application_for, experience_years, past_experience, status 
           FROM users 
-          WHERE role = 'employer' 
+          WHERE role = 'jobseeker' 
           ORDER BY id DESC";
 $result = $mysqli->query($query);
 ?>
@@ -13,7 +13,7 @@ $result = $mysqli->query($query);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registered Companies</title>
+<title>Registered Job Seekers</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- Include main CSS and animations -->
@@ -22,7 +22,6 @@ $result = $mysqli->query($query);
 
 <style>
 .container { margin-top: 80px; }
-
 .card {
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
@@ -30,18 +29,7 @@ $result = $mysqli->query($query);
     border: none;
 }
 .card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.15); }
-
-.card img {
-    border-radius: 12px;
-    width: 100%;
-    height: 180px;
-    object-fit: contain;
-    background-color: #f4f4f4;
-    padding: 10px;
-}
-
 .card-title { color: #00A098; font-weight: 700; }
-
 .status-active {
     background-color: #d4edda; color: #155724;
     padding: 5px 12px; border-radius: 20px; font-weight: 600;
@@ -50,59 +38,51 @@ $result = $mysqli->query($query);
     background-color: #f8d7da; color: #721c24;
     padding: 5px 12px; border-radius: 20px; font-weight: 600;
 }
-
 .search-bar {
     border-radius: 30px;
     padding: 10px 20px;
     border: 1px solid #00A098;
     width: 100%; max-width: 400px;
 }
-
-.card-text { color: #444; }
 </style>
 </head>
 <body>
 
 <div class="container wow fadeInUp" data-wow-delay="0.2s">
-    <h2 class="text-center mb-4" style="color:#00A098; font-weight:700;">Registered Companies</h2>
+    <h2 class="text-center mb-4" style="color:#00A098; font-weight:700;">Registered Job Seekers</h2>
 
-    <!-- Search bar -->
     <div class="mb-4 text-center">
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search by company name, email or service..." onkeyup="filterCards()">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search by name, email or application..." onkeyup="filterCards()">
     </div>
 
-    <div class="row" id="companyList">
+    <div class="row" id="jobSeekerList">
         <?php if ($result && $result->num_rows > 0): ?>
-            <?php while ($company = $result->fetch_assoc()): ?>
-                <div class="col-md-4 mb-4 company-card wow fadeInUp" data-wow-delay="0.3s">
+            <?php while ($user = $result->fetch_assoc()): ?>
+                <div class="col-md-4 mb-4 job-card wow fadeInUp" data-wow-delay="0.3s">
                     <div class="card p-3 h-100">
-                        <?php if (!empty($company['company_logo']) && file_exists($company['company_logo'])): ?>
-                            <img src="<?= htmlspecialchars($company['company_logo']) ?>" alt="<?= htmlspecialchars($company['company_name']) ?>">
-                        <?php else: ?>
-                            <img src="img/image.png" alt="No Logo">
-                        <?php endif; ?>
                         <div class="card-body">
-                            <h5 class="card-title"><?= htmlspecialchars($company['company_name'] ?? $company['name']) ?></h5>
-                            <p class="card-text mb-1"><strong>Email:</strong> <?= htmlspecialchars($company['email']) ?></p>
-                            <span class="<?= $company['status'] == 'active' ? 'status-active' : 'status-inactive' ?>">
-                                <?= ucfirst($company['status']) ?>
-                            </span>
+                            <h5 class="card-title"><?= htmlspecialchars($user['name']) ?></h5>
+                            <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
+                            <p><strong>Application For:</strong> <?= htmlspecialchars($user['application_for'] ?? 'N/A') ?></p>
+                            <p><strong>Experience:</strong> <?= htmlspecialchars($user['experience_years'] ?? '0') ?> year(s)</p>
+                            <p><strong>Past Experience:</strong><br><?= nl2br(htmlspecialchars($user['past_experience'] ?? 'Not provided')) ?></p>
+                         
                         </div>
                     </div>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
-            <p class="text-center text-muted">No companies found.</p>
+            <p class="text-center text-muted">No job seekers found.</p>
         <?php endif; ?>
     </div>
 </div>
 
 <script>
 function filterCards() {
-    let input = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('.company-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(input) ? '' : 'none';
-    });
+  let input = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.job-card').forEach(card => {
+    card.style.display = card.innerText.toLowerCase().includes(input) ? '' : 'none';
+  });
 }
 </script>
 
@@ -118,3 +98,4 @@ function filterCards() {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+ 
