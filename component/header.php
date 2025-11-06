@@ -4,7 +4,7 @@
  ?>
 <div class="container-fluid nav-bar p-0">
   <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0" style="background-color:#00A098;">
-    <a href="#" class="navbar-brand p-0 d-flex align-items-center">
+    <a href="index.php" class="navbar-brand p-0 d-flex align-items-center">
       <img src="img/image-removebg-preview.png" class="img-fluid" alt="" width="300px">
     </a>
 
