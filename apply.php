@@ -96,20 +96,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $employer = $emp_stmt->get_result()->fetch_assoc();
             $emp_stmt->close();
 
-            $admin_email = "pantamanoj08@gmail.com"; // admin email
+            $admin_email = ""; // admin email
 
             $mail = new PHPMailer(true);
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'pantamanoj08@gmail.com'; // your email
-            $mail->Password = 'qjms snqf uzjn pvdc';    // app password
-            $mail->SMTPSecure = 'tls';
-            $mail->Port = 587;
+          $mail->isSMTP();
+$mail->Host = 'skillednepali.com';
+$mail->SMTPAuth = true;
+$mail->Username = 'inquiry@skillednepali.com';
+$mail->Password = 'adgjl@900';
+$mail->SMTPSecure = 'ssl';
+$mail->Port = 465;
 
-            $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal');
-            $mail->addAddress($employer['email'], $employer['company']); // employer
-            $mail->addAddress($admin_email, 'Admin'); // admin
+$mail->setFrom('inquiry@skillednepali.com', 'Job Portal of Skilled Nepali');
+$mail->addAddress($employer['email'], $employer['company']); // employer
+$mail->addAddress($admin_email, 'Admin'); // admin
+
 
             $mail->isHTML(true);
             $mail->Subject = "New Job Application Received";

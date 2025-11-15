@@ -8,6 +8,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
+    <link rel="icon" type="image/x-icon" href="img/bg-logo.jpg">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +26,6 @@
     <!--00A098-->
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="img/Logo.png">
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 </head>
@@ -59,7 +59,7 @@
             </ol>
             <div class="carousel-inner" role="listbox">
                 <div class="carousel-item active">
-                    <img src="img/carousel-2.jpg" class="img-fluid" alt="Image">
+                    <img src="img/slider.jpg" class="img-fluid" alt="Image">
                     <div class="carousel-caption">
                         <div class="text-center p-4" style="max-width: 900px;">
                             <h4 class="text-white text-uppercase fw-bold mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.1s">Bridge between Nepali Talent & GCC Opportunity</h4>

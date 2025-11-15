@@ -1,31 +1,47 @@
 <?php 
 include 'portal_header.php'; 
+
 require_login(); 
 if (!is_admin()) die("<div class='alert alert-danger'>Access Denied: Admins only.</div>");
 
 // Include PHPMailer
 require 'vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 // Helper function to send email
 function sendEmail($to, $name, $subject, $body) {
+    global $mysqli;
+    
     try {
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'pantamanoj08@gmail.com'; // replace with your SMTP email
-        $mail->Password = 'qjms snqf uzjn pvdc';    // replace with SMTP password
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
+        $admin_email = "pantamanoj08@gmail.com"; // admin email
 
-        $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal of Skilled Nepali');
-        $mail->addAddress($to, $name);
+        // ✅ Create PHPMailer instance
+        $mail = new PHPMailer(true);
+
+        // ✅ SMTP Configuration
+        $mail->isSMTP();
+        $mail->Host = 'skillednepali.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'inquiry@skillednepali.com';
+        $mail->Password = 'adgjl@900';
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
+
+        $mail->setFrom('inquiry@skillednepali.com', 'Job Portal of Skilled Nepali');
+        $mail->addAddress($to, $name); // recipient
+        $mail->addAddress($admin_email, 'Admin'); // admin
+
         $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body = $body;
+
         $mail->send();
+        return true;
+
     } catch (Exception $e) {
         error_log("Mailer Error: " . $mail->ErrorInfo);
+        return false;
     }
 }
 
@@ -142,7 +158,7 @@ if(isset($_POST['update_role'])){
 
         echo "<div class='alert alert-success'>✅ Role updated successfully!</div>";
     } else {
-        echo "<div class='alert alert-danger'>❌ Invalid role selected.</div>";
+        echo "<div class='alert alert-danger'> Invalid role selected.</div>";
     }
 }
 ?>

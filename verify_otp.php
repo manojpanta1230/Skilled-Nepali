@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // ✅ Success message & redirect
-                $success = "✅ OTP verified successfully! Your account is now active. Redirecting to login...";
+                $success = " OTP verified successfully! Your account is now active. Redirecting to login...";
                 unset($_SESSION['otp'], $_SESSION['otp_user_id'], $_SESSION['otp_expiry']);
                 header("refresh:4;url=login.php");
             } else {
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $stmt->close();
         } else {
-            $errors[] = "❌ Invalid OTP. Try again.";
+            $errors[] = " Invalid OTP. Try again.";
         }
     }
 }

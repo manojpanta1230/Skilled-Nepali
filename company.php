@@ -2,24 +2,27 @@
 include 'component/header.php';
 
 // Fetch all employers (companies)
-$query = "SELECT id, name, email, company as company_name, image as company_logo,status
+$query = "SELECT id, name, email, company as company_name, image as company_logo, status
           FROM users 
-          WHERE role = 'employer' 
+          WHERE role = 'employer' AND status = 'active'
           ORDER BY id DESC";
+
 $result = $mysqli->query($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/x-icon" href="img/bg-logo.jpg">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registered Companies</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- Include main CSS and animations -->
 <link href="lib/animate/animate.min.css" rel="stylesheet">
 <link href="css/style.css" rel="stylesheet">
-
 <style>
 .container { margin-top: 80px; }
 
@@ -68,8 +71,15 @@ $result = $mysqli->query($query);
 
     <!-- Search bar -->
     <div class="mb-4 text-center">
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search by company name, email or service..." onkeyup="filterCards()">
+        <input type="text" id="searchInput" class="search-bar" 
+               placeholder="Search by company name, email or service..." 
+               onkeyup="filterCards()">
     </div>
+
+    <!-- No results message -->
+    <p id="noResults" class="text-center fw-bold" style="color: red; display: none;">
+        No such record found.
+    </p>
 
     <div class="row" id="companyList">
         <?php if ($result && $result->num_rows > 0): ?>
@@ -99,10 +109,19 @@ $result = $mysqli->query($query);
 
 <script>
 function filterCards() {
-    let input = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('.company-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(input) ? '' : 'none';
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.company-card');
+    const noResults = document.getElementById('noResults');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const match = card.innerText.toLowerCase().includes(input);
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
     });
+
+    // Show red "No record found" message if no cards are visible
+    noResults.style.display = (visibleCount === 0 && input.length > 0) ? 'block' : 'none';
 }
 </script>
 
