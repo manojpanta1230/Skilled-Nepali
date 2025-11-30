@@ -13,6 +13,7 @@ $result = $mysqli->query($query);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="img/Logo.png" type="image/x-icon">
 <title>Registered Job Seekers</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -62,7 +63,6 @@ $result = $mysqli->query($query);
                     <div class="card p-3 h-100">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($user['name']) ?></h5>
-                            <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
                             <p><strong>Application For:</strong> <?= htmlspecialchars($user['application_for'] ?? 'N/A') ?></p>
                             <p><strong>Experience:</strong> <?= htmlspecialchars($user['experience_years'] ?? '0') ?> year(s)</p>
                             <p><strong>Past Experience:</strong><br><?= nl2br(htmlspecialchars($user['past_experience'] ?? 'Not provided')) ?></p>

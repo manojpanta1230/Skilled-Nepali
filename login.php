@@ -41,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="col-md-6 mx-auto mt-5">
-  <h3 class="mb-3">Login</h3>
+  <h3 class="mb-3 text-center">Login</h3>
 
   <?php if ($error): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
 
- <form method="post">
+ <form method="post" class="p-2">
     <!-- Keep email value after login error -->
     <input 
         name="email" 
@@ -73,8 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </span>
     </div>
 
-    <div class="mb-3">
-      <a href="forgot_password.php" class="text-decoration-none" style="font-size: 0.9rem;">Forgot Password?</a>
+    <div class="mb-3 d-flex flex-column gap-2 ">
+      <a href="forgot_password.php" class="text-decoration-none" style="font-size: 0.9rem;">Forgot Password?</a> 
+      <a href="register.php" class="text-decoration-none " style="font-size: 0.9rem; color: red;">Don't Have an account?Click here to sign up</a> 
+      
+
     </div>
 
     <button class="btn btn-primary w-100" style="background-color:#00A098">Login</button>

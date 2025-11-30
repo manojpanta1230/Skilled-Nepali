@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_job'])) {
 if (isset($_GET['delete_request'])) {
     $job_id = intval($_GET['delete_request']);
     $mysqli->query("UPDATE jobs SET delete_requested=1 WHERE id=$job_id AND employer_id=$uid");
-    echo '<div class="alert alert-warning text-center mt-3">🕓 Delete request sent to admin for approval.</div>';
+    echo '<div class="alert alert-warning text-center mt-3"> Delete request sent to admin for approval.</div>';
 }
 
 // Fetch jobs
@@ -37,7 +37,7 @@ $res = $mysqli->query("SELECT * FROM jobs WHERE employer_id=$uid ORDER BY id DES
 ?>
 
 <div class="container mt-5">
-  <h3 class="mb-4 text-center">🧾 Manage Your Job Posts</h3>
+  <h3 class="mb-4 text-center"> Manage Your Job Posts</h3>
 
   <div class="row row-cols-1 row-cols-md-2 g-4">
     <?php while($r = $res->fetch_assoc()): ?>
