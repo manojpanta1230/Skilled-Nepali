@@ -47,14 +47,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail = new PHPMailer\PHPMailer\PHPMailer(true);
             try {
                 $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'pantamanoj08@gmail.com'; 
-                $mail->Password = 'qjms snqf uzjn pvdc';   
-                $mail->SMTPSecure = 'tls';
-                $mail->Port = 587;
+        $mail->Host = 'skillednepali.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'inquiry@skillednepali.com';
+        $mail->Password = 'adgjl@900';
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
 
-                $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal');
+                $mail->setFrom('inquiry@skillednepali.com', 'Job Portal');
                 $mail->addAddress($admin_email, 'Admin');
                 $mail->isHTML(true);
                 $mail->Subject = 'New Job Posted - Admin Approval Needed';

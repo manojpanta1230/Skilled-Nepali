@@ -87,12 +87,25 @@
         <?php if(is_logged_in()):
               $user = current_user();
               $displayName = !empty($user['company']) ? $user['company'] : $user['name'];
+              
+              // Determine which dashboard link to show based on user role
+              $dashboard_link = "dashboard.php"; // Default
+              
+              if (is_admin()) {
+                  $dashboard_link = "admin_panel.php";
+              } elseif (is_employer()) {
+                  $dashboard_link = "dashboard_employer.php";
+              } elseif (is_training_center()) {
+                  $dashboard_link = "dashboard_training.php";
+              } elseif (is_jobseeker()) {
+                  $dashboard_link = "jobseeker_panel.php";
+              }
         ?>
           <li class="nav-item me-2">
             <span class="nav-link text-white">Welcome, <b><?= htmlspecialchars($displayName) ?></b></span>
           </li>
           <li class="nav-item me-2 desktop-auth">
-            <a href="dashboard.php" class="btn btn-outline-light btn-sm">Dashboard</a>
+            <a href="<?= $dashboard_link ?>" class="btn btn-outline-light btn-sm">Dashboard</a>
           </li>
           <li class="nav-item desktop-auth">
             <a href="logout.php" class="btn btn-danger btn-sm">Logout</a>
@@ -115,8 +128,21 @@
   <?php if(is_logged_in()):
         $user = current_user();
         $displayName = !empty($user['company']) ? $user['company'] : $user['name'];
+        
+        // Determine which dashboard link to show based on user role
+        $dashboard_link = "dashboard.php"; // Default
+        
+        if (is_admin()) {
+            $dashboard_link = "admin_panel.php";
+        } elseif (is_employer()) {
+            $dashboard_link = "dashboard_employer.php";
+        } elseif (is_training_center()) {
+            $dashboard_link = "dashboard_training.php";
+        } elseif (is_jobseeker()) {
+            $dashboard_link = "jobseeker_panel.php";
+        }
   ?>
-    <a href="dashboard.php" class="btn btn-outline-light btn-sm">Dashboard</a>
+    <a href="<?= $dashboard_link ?>" class="btn btn-outline-light btn-sm">Dashboard</a>
     <a href="logout.php" class="btn btn-danger btn-sm">Logout</a>
   <?php else: ?>
     <a href="login.php" class="btn btn-light btn-sm px-3 rounded-pill">Login</a>
@@ -124,11 +150,7 @@
   <?php endif; ?>
 </div>
 
-<!-- Main content -->
-<div class="container mt-5">
-  <h2 class="text-center mt-4">Latest Jobs</h2>
-  <p class="text-center text-muted">Your dream career starts here.</p>
-</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
