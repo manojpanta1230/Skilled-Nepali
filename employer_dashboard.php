@@ -1,6 +1,7 @@
 <?php 
-include 'config.php';
-require_login(); 
+require_once 'config.php';
+
+
 if(!is_employer()) die("<div class='alert alert-danger'>Access Denied: Employers only.</div>");
 
 $u = current_user();
@@ -63,17 +64,19 @@ if(isset($_POST['upload_image'])) {
     } else {
         $_SESSION['error_message'] = "Invalid file type. Only JPG, PNG, WEBP allowed.";
     }
-    header("Location: dashboard.php");
+    header("Location: employer_dashboard.php");
     exit();
 }
 
 // Set active tab from URL parameter
-$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'employer_dashboard';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+        <link rel="shortcut icon" href="img/Logo.png" type="image/x-icon">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employer Dashboard</title>
     
@@ -812,49 +815,52 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
         </div>
         
         <!-- Navigation Menu -->
-        <div class="sidebar-menu">
-            <div class="sidebar-item">
-                <a href="?tab=dashboard" class="sidebar-link <?= $active_tab == 'dashboard' ? 'active' : '' ?>" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="post_job.php" class="sidebar-link" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Post New Job</span>
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="my_jobs.php" class="sidebar-link" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-briefcase"></i>
-                    <span>My Jobs</span>
-                    <?php if($total_jobs > 0): ?>
-                    <span class="badge bg-info rounded-pill"><?= $total_jobs ?></span>
-                    <?php endif; ?>
-                </a>
-            </div>
-            
-           
-            
-           
-            
-            <div class="sidebar-item mt-4">
-                <a href="index.php" class="sidebar-link" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-home"></i>
-                    <span>Back to Home</span>
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="logout.php" class="sidebar-link text-danger" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
+     <div class="sidebar-menu">
+
+    <!-- Dashboard Tab -->
+    <div class="sidebar-item">
+        <a href="employer_dashboard.php?tab=employer_dashboard" 
+           class="sidebar-link <?= $active_tab == 'employer_dashboard' ? 'active' : '' ?>" 
+           onclick="closeSidebarOnMobile()">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
+
+    <!-- Post Job Tab -->
+    <div class="sidebar-item">
+        <a href="employer_dashboard.php?tab=post_job" 
+           class="sidebar-link <?= $active_tab == 'post_job' ? 'active' : '' ?>" 
+           onclick="closeSidebarOnMobile()">
+            <i class="fas fa-plus-circle"></i>
+            <span>Post New Job</span>
+        </a>
+    </div>
+
+    <!-- My Jobs Tab -->
+    <div class="sidebar-item">
+        <a href="employer_dashboard.php?tab=my_jobs" 
+           class="sidebar-link <?= $active_tab == 'my_jobs' ? 'active' : '' ?>" 
+           onclick="closeSidebarOnMobile()">
+            <i class="fas fa-briefcase"></i>
+            <span>My Jobs</span>
+            <?php if($total_jobs > 0): ?>
+                <span class="badge bg-info rounded-pill"><?= $total_jobs ?></span>
+            <?php endif; ?>
+        </a>
+    </div>
+
+
+
+    <div class="sidebar-item">
+        <a href="logout.php" class="sidebar-link text-danger" onclick="closeSidebarOnMobile()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+
+</div>
+
     </nav>
 
     <!-- Main Content -->
@@ -879,28 +885,10 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
 
         <!-- Content -->
         <div class="content-wrapper">
-            <!-- Display Alerts -->
-            <?php if(isset($_SESSION['success_message'])): ?>
-                <div class="alert-modern alert-success alert-dismissible fade show">
-                    <i class="fas fa-check-circle"></i>
-                    <?= $_SESSION['success_message'] ?>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
-                </div>
-                <?php unset($_SESSION['success_message']); ?>
-            <?php endif; ?>
-            
-            <?php if(isset($_SESSION['error_message'])): ?>
-                <div class="alert-modern alert-danger alert-dismissible fade show">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <?= $_SESSION['error_message'] ?>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
-                </div>
-                <?php unset($_SESSION['error_message']); ?>
-            <?php endif; ?>
+            <?php if($active_tab == 'employer_dashboard'): ?>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions mb-4">
-                <a href="post_job.php" class="action-card post-job">
+          <div class="quick-actions mb-4">
+                <a href="employer_dashboard.php?tab=post_job" class="action-card post-job">
                     <div class="action-icon">
                         <i class="fas fa-plus-circle"></i>
                     </div>
@@ -911,7 +899,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
                     <i class="fas fa-chevron-right ms-auto"></i>
                 </a>
                 
-                <a href="my_jobs.php" class="action-card view-jobs">
+                <a href="employer_dashboard.php?tab=my_jobs" class="action-card view-jobs">
                     <div class="action-icon">
                         <i class="fas fa-briefcase"></i>
                     </div>
@@ -1046,9 +1034,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
                 <div class="applications-card">
                     <div class="card-header">
                         <h3><i class="fas fa-file-alt"></i> Recent Applications</h3>
-                        <a href="applications.php" class="btn btn-outline-modern btn-modern btn-sm">
-                            <i class="fas fa-external-link-alt"></i> View All
-                        </a>
+                       
                     </div>
                     
                     <div class="card-body">
@@ -1071,7 +1057,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
                                                 <div class="d-flex align-items-center">
                                                     <div class="applicant-avatar">
                                                         <?php if(!empty($app['photo'])): ?>
-                                                            <img src="<?= htmlspecialchars($app['photo']) ?>" alt="Applicant Photo">
+                                                            <img src="<?= htmlspecialchars($app['photo']) ?>" alt="Applicant Photo" style="width: 50px;">
                                                         <?php else: ?>
                                                             <div class="avatar-placeholder">
                                                                 <?= strtoupper(substr($app['jobseeker_name'], 0, 1)) ?>
@@ -1170,7 +1156,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
                             <div class="empty-state">
                                 <i class="fas fa-users"></i>
                                 <p>No applications yet for your jobs</p>
-                                <a href="post_job.php" class="btn btn-primary-modern btn-modern">
+                                <a href="employer_dashboard.php?tab=post_job" class="btn btn-primary-modern btn-modern">
                                     <i class="fas fa-plus-circle me-2"></i> Post Your First Job
                                 </a>
                             </div>
@@ -1178,8 +1164,40 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
                     </div>
                 </div>
             </div>
+ 
+<?php elseif($active_tab == 'post_job'): ?>
+
+    <?php include 'post_job.php'; ?>
+
+<?php elseif($active_tab == 'my_jobs'): ?>
+
+    <?php include 'my_jobs.php'; ?>
+
+<?php endif; ?>
+            <!-- Display Alerts -->
+            <?php if(isset($_SESSION['success_message'])): ?>
+                <div class="alert-modern alert-success alert-dismissible fade show">
+                    <i class="fas fa-check-circle"></i>
+                    <?= $_SESSION['success_message'] ?>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['success_message']); ?>
+            <?php endif; ?>
+            
+            <?php if(isset($_SESSION['error_message'])): ?>
+                <div class="alert-modern alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= $_SESSION['error_message'] ?>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['error_message']); ?>
+            <?php endif; ?>
+
+            <!-- Quick Actions -->
+        
         </div>
     </main>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

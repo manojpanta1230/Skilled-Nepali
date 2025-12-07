@@ -14,9 +14,6 @@ $showOtpModal = false; // Flag to trigger OTP modal
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // ===============================
-    // Handle OTP verification first
-    // ===============================
    
     // ===============================
     // Handle Registration
@@ -31,7 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imagePath = null;
 
         // Jobseeker fields
-        $application_for = $_POST['application_for'] ?? '';
+       $application_for = $_POST['application_for'] ?? '';
+$other_job_category = trim($_POST['other_job_category'] ?? '');
+
+if ($application_for === 'Others' && !empty($other_job_category)) {
+    $application_for = $other_job_category;
+}
+
         $experience_years = intval($_POST['experience_years'] ?? 0);
         $past_experience = trim($_POST['past_experience'] ?? '');
         $applicant_type = trim($_POST['applicant_type'] ?? '');
@@ -69,6 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($application_for)) $errors[] = "Please select application type.";
             if (empty($applicant_type)) $errors[] = "Please select applicant type.";
             if ($experience_years < 0) $errors[] = "Years of experience must be a valid number.";
+             if (empty($application_for)) $errors[] = "Please select application type.";
+    if ($_POST['application_for'] === 'Others' && empty($other_job_category)) {
+        $errors[] = "Please specify your job category.";
+    }
         }
 
         // Check duplicate email
@@ -144,13 +151,16 @@ if ($role === 'jobseeker') {
             }
         }
     }
+ 
 }
+
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="img/Logo.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Job Portal</title>
     
@@ -683,18 +693,47 @@ if ($role === 'jobseeker') {
     <div class="field-group">
     <label for="application_for">Job Category</label>
     <div class="form-group">
-        <select name="application_for" id="application_for" class="form-control">
-            <option value="">Select Job Category</option>
-            <option value="Hospitality" <?= (($_POST['application_for'] ?? '') === 'Hospitality') ? 'selected' : '' ?>>Hospitality</option>
-            <option value="Facility Management" <?= (($_POST['application_for'] ?? '') === 'Facility Management') ? 'selected' : '' ?>>Facility Management</option>
-            <option value="Transportation & Logistics" <?= (($_POST['application_for'] ?? '') === 'Transportation & Logistics') ? 'selected' : '' ?>>Transportation & Logistics</option>
-            <option value="IT & Designing" <?= (($_POST['application_for'] ?? '') === 'IT & Designing') ? 'selected' : '' ?>>IT & Designing</option>
-            <option value="Medical & Engineering" <?= (($_POST['application_for'] ?? '') === 'Medical & Engineering') ? 'selected' : '' ?>>Medical & Engineering</option>
-            <option value="Oil & Gas" <?= (($_POST['application_for'] ?? '') === 'Oil & Gas') ? 'selected' : '' ?>>Oil & Gas</option>
-            <option value="Trade Worker" <?= (($_POST['application_for'] ?? '') === 'Trade Worker') ? 'selected' : '' ?>>Trade Worker</option>
-            <option value="Others" <?= (($_POST['application_for'] ?? '') === 'Others') ? 'selected' : '' ?>>Others</option>
-        </select>
+      <select name="application_for" id="application_for" class="form-control">
+    <option value="">Select Job Category</option>
+    <?php
+    $jobs = [
+        "Labour","Cleaner","Helper","Sweeper","Watchman","Office Boy","Washing Worker","Building Worker",
+        "Construction Worker","Bell man","Room Attendant","Mason","Plaster Worker","Block Makers","Carpenter",
+        "Mechanical helper","Electrical helper","Steel Fixture","Tile Fixture","Plumber","Pipe Fitter","Welder",
+        "Scaffolder","A/C Mechanic","Electricians","Tailors","Assistant Tailors","Laundry Man","Washer Man",
+        "Barbers","Shop Assistant","Messenger","Technician","Digger","Ceramic Worker","Painter","Gardeners",
+        "Reinforce Fitter","Construction","Cabling Technician","Receptionist","Designer","Professional","Cashier",
+        "Telephone Operator","Salesman","Assistant Cook","Typist","Bakers","Assistant Bakers","Drivers Light",
+        "Waiter","Cook","Security Guard","Beautician","Driver Light GCC","Store Keeper","Machine Operator",
+        "Computer Operator","Photographer","Correspondent","Medical Assistant","Driver Heavy","Front Office Personnel",
+        "Sales Executive","Sales Representative","Clerk","Secretary","Driver Heavy GCC","Representative",
+        "Business Executive","Administrative","Translator","Foreman","Plant Operators","Construction Supervisor",
+        "Pharmacist","Laboratory Technician","Overseer","Construction Equipment Operators","Scaffolding Supervisor",
+        "Draughtsman","Computer Engineer","Accountant","Physiotherapist","Nurse","Civil Engineer","Electrical Engineer",
+        "Mechanical Engineer","Electronic Engineer","Telecom Engineer","Safety Engineer","HR Executive","Manager",
+        "General Manager","General Physician (Doctor)","Surgeon","Chartered Accountant"
+    ];
+
+    foreach($jobs as $job){
+        $selected = (($_POST['application_for'] ?? '') === $job) ? 'selected' : '';
+        echo "<option value=\"$job\" $selected>$job</option>";
+    }
+
+    // Add Others option
+    $selected = (($_POST['application_for'] ?? '') === 'Others') ? 'selected' : '';
+    echo "<option value=\"Others\" $selected>Others</option>";
+    ?>
+</select>
+
     </div>
+    <!-- Other job category input (hidden by default) -->
+<div class="field-group" id="otherJobCategoryGroup" style="display:none;">
+    <label for="other_job_category">Please specify Job Category</label>
+    <div class="form-group">
+        <input type="text" name="other_job_category" id="other_job_category" class="form-control" placeholder="Enter job category">
+    </div>
+</div>
+
 </div>
 
         
@@ -831,6 +870,16 @@ document.getElementById('imageField').addEventListener('change', function(event)
         };
 
         reader.readAsDataURL(file);
+    }
+});
+document.getElementById('application_for').addEventListener('change', function () {
+    const otherGroup = document.getElementById('otherJobCategoryGroup');
+    
+    if (this.value === 'Others') {
+        otherGroup.style.display = 'block';
+    } else {
+        otherGroup.style.display = 'none';
+        document.getElementById('other_job_category').value = '';
     }
 });
 

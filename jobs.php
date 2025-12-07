@@ -1,8 +1,5 @@
 <?php
-    include 'component/header.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+include 'component/header.php';
 
 
 /* -------------------------
@@ -76,13 +73,16 @@ $totalCourses = $courses->num_rows;
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title> All Jobs</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <link href="lib/animate/animate.min.css" rel="stylesheet"></style>
-
+<link rel="icon" href="img/Logo.png" type="image/x-icon">
 <style>
 :root {
     --primary-color: #00A098;
@@ -96,11 +96,18 @@ $totalCourses = $courses->num_rows;
     --shadow-lg: 0 16px 48px rgba(0,0,0,0.18);
 }
 
-
+body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.nav-bar {
+    margin-bottom: 0 !important;
+}
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     padding: 50px 0 100px;
-    margin-bottom: -60px;
+    margin: 0 0 -60px 0; /* Changed this line */
     position: relative;
     overflow: hidden;
 }
@@ -374,7 +381,7 @@ $totalCourses = $courses->num_rows;
     position: absolute;
     top: 15px;
     right: 15px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    background: orange;
     color: white;
     padding: 6px 14px;
     border-radius: 20px;
@@ -406,7 +413,7 @@ $totalCourses = $courses->num_rows;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #009991;
     color: white;
     padding: 8px 16px;
     border-radius: 20px;
@@ -593,7 +600,7 @@ $totalCourses = $courses->num_rows;
                         </div>
 
                         <div class="salary-badge">
-                            <i class="fas fa-dollar-sign"></i>
+                          
                             <?= $job['salary'] ?>
                         </div>
                     </div>

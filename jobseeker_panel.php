@@ -159,6 +159,7 @@ if($active_tab == 'applications') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="img/Logo.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jobseeker Dashboard</title>
     

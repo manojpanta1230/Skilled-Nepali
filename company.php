@@ -13,13 +13,16 @@ $result = $mysqli->query($query);
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/x-icon" href="img/bg-logo.jpg">
+
 <title>Registered Companies</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="lib/animate/animate.min.css" rel="stylesheet">
 <link href="css/style.css" rel="stylesheet">
+<link rel="icon" href="/img/Logo.png?v=1" type="image/png">
 
 <style>
 :root {
@@ -318,25 +321,7 @@ body {
     font-size: 1.2rem;
 }
 
-.view-details-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
-    border: 2px solid var(--primary-color);
-    background: white;
-    color: var(--primary-color);
-    border-radius: 12px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
 
-.view-details-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,160,152,0.3);
-}
 
 @media (max-width: 768px) {
     .dashboard-title {
@@ -444,10 +429,7 @@ body {
                                 <i class="fas fa-circle"></i>
                                 <?= ucfirst($company['status']) ?>
                             </span>
-                            
-                            <button class="view-details-btn">
-                                <i class="fas fa-info-circle"></i> View Details
-                            </button>
+                          
                         </div>
                     </div>
                 </div>

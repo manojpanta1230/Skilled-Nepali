@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = '⏳ Your account is pending approval by admin.';
         } else {
             $_SESSION['user_id'] = $u['id'];
+             $_SESSION['name']    = $u['name'];
+             $_SESSION['role']    = $u['role'];
 
             if ($u['role'] === 'admin') {
                 header('Location: admin_panel.php');
@@ -50,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="img/Logo.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Job Portal</title>
     

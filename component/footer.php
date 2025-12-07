@@ -43,16 +43,33 @@
                 </div>
             </div>
             <!-- Newsletter -->
-            <div class="col-md-6 col-lg-6 col-xl-3">
-                <div class="footer-item">
-                    <h4 class="text-light mb-4">Newsletter</h4>
-                    <p class="text-white mb-3">Subscribe for quick tips, fresh ideas, and weekly inspiration.</p>
-                    <div class="position-relative mx-auto rounded-pill">
-                        <input class="form-control border-0 rounded-pill w-100 py-3 ps-4 pe-5" type="text" placeholder="Enter your email">
-                        <button type="button" class="btn btn-primary rounded-pill position-absolute top-0 end-0 py-2 mt-2 me-2">SignUp</button>
-                    </div>
-                </div>
-            </div>
+           <div class="col-md-6 col-lg-6 col-xl-3">
+    <div class="footer-item">
+        <h4 class="text-light mb-4">Useful Links</h4>
+
+        <p class="text-white mb-3">Quick access to important SkilledNepali pages.</p>
+
+        <ul class="list-unstyled">
+            <li class="mb-2">
+                <a href="privacy.php" class="text-white text-decoration-none">
+                    <i class="fa fa-angle-right me-2"></i> Privacy Policy
+                </a>
+            </li>
+            <li class="mb-2">
+                <a href="terms.php" class="text-white text-decoration-none">
+                    <i class="fa fa-angle-right me-2"></i> Terms & Conditions
+                </a>
+            </li>
+            <li class="mb-2">
+                <a href="aboutus.php" class="text-white text-decoration-none">
+                    <i class="fa fa-angle-right me-2"></i> About Us
+                </a>
+            </li>
+           
+        </ul>
+    </div>
+</div>
+
         </div>
 
         <!-- Copyright Inside Footer -->
@@ -65,7 +82,7 @@
                 </span>
             </div>
             <div class="col-md-6 text-center text-md-end text-white">
-                Designed By <a class="border-bottom text-white" href="https://htmlcodex.com">Manoj Panta & Akash Regmi</a>
+                Designed By <a class="border-bottom text-white" href="#">Manoj Panta & Akash Regmi</a>
             </div>
         </div>
     </div>
