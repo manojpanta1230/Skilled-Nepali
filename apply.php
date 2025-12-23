@@ -38,7 +38,9 @@ if (!$job) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name    = $mysqli->real_escape_string(trim($_POST['name']));
     $email   = $mysqli->real_escape_string(trim($_POST['email']));
-    $phone   = $mysqli->real_escape_string(trim($_POST['phone']));
+$country_code = $mysqli->real_escape_string($_POST['country_code']);
+$phone_number = $mysqli->real_escape_string(trim($_POST['phone']));
+$phone = $country_code . ' ' . $phone_number;
     $address = $mysqli->real_escape_string(trim($_POST['address']));
     $notes   = $mysqli->real_escape_string(trim($_POST['notes'] ?? ''));
 
@@ -156,10 +158,28 @@ $mail->addAddress($admin_email, 'Admin'); // admin
                 <label class="form-label">Email Address</label>
                 <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>" required>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Phone Number</label>
-                <input type="text" name="phone" class="form-control" required>
-            </div>
+    <div class="col-md-6">
+    <label class="form-label">Phone Number</label>
+    <div class="input-group">
+        <select name="country_code" class="form-select" style="max-width: 130px;" required>
+            <option value="+977">🇳🇵 Nepal (+977)</option>
+            <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+            <option value="+971">🇦🇪 UAE (+971)</option>
+            <option value="+974">🇶🇦 Qatar (+974)</option>
+            <option value="+965">🇰🇼 Kuwait (+965)</option>
+            <option value="+968">🇴🇲 Oman (+968)</option>
+            <option value="+973">🇧🇭 Bahrain (+973)</option>
+        </select>
+        <input 
+            type="text" 
+            name="phone" 
+            class="form-control" 
+            placeholder="Enter phone number"
+            required
+        >
+    </div>
+</div>
+
             <div class="col-md-6">
                 <label class="form-label">Address</label>
                 <input type="text" name="address" class="form-control" required>

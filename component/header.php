@@ -1,14 +1,17 @@
-<!-- Navbar & Hero Start -->
-<?php 
-include 'config.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
 
 <!-- Font Awesome -->
 
+<?php
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Include database/config if needed
+include_once './config.php'; // Adjust the path depending on where header.php is
+?>
+<!-- Navbar Start -->
 <div class="container-fluid nav-bar p-0">
   <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0" style="background-color:#00A098;">
     <a href="index.php" class="navbar-brand p-0 d-flex align-items-center">
@@ -26,6 +29,7 @@ if (session_status() === PHP_SESSION_NONE) {
         <a href="company.php" class="nav-item nav-link text-white mx-2">Company</a>
         <a href="job_seeker.php" class="nav-item nav-link text-white mx-2">Candidate</a>
         <a href="jobs.php" class="nav-item nav-link text-white mx-2">View All Jobs</a>
+        <a href="jobs.php?type=training" class="nav-item nav-link text-white mx-2">View All Training</a>
 
         <!-- User Dropdown -->
         <div class="nav-item dropdown ms-3">
@@ -35,71 +39,38 @@ if (session_status() === PHP_SESSION_NONE) {
           </a>
 
           <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="userDropdown">
-
             <?php if (!empty($_SESSION['user_id'])): ?>
               <li>
-                <h6 class="dropdown-header">
-                   Hello, <?= htmlspecialchars($_SESSION['name'] ?? 'User') ?>
-                </h6>
+                <h6 class="dropdown-header">Hello, <?= htmlspecialchars($_SESSION['name'] ?? 'User') ?></h6>
               </li>
 
-              <!-- My Dashboard (for everyone logged in) -->
-            
-
-              <!-- Role based links -->
-              <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'jobseeker'): ?>
-                <li>
-                  <a class="dropdown-item" href="jobseeker_panel.php">
-                    <i class="fas fa-user me-2"></i> Jobseeker Panel
-                  </a>
-                </li>
-              <?php elseif (!empty($_SESSION['role']) && $_SESSION['role'] === 'employer'): ?>
-                <li>
-                  <a class="dropdown-item" href="employer_dashboard.php">
-                    <i class="fas fa-building me-2"></i> Employer Panel
-                  </a>
-                </li>
-              <?php elseif (!empty($_SESSION['role']) && $_SESSION['role'] === 'training_center'): ?>
-                <li>
-                  <a class="dropdown-item" href="training_center_dashboard.php">
-                    <i class="fas fa-school me-2"></i> Training Center Panel
-                  </a>
-                </li>
-              <?php elseif (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin' ): ?>
-                <li>
-                  <a class="dropdown-item" href="admin_panel.php">
-                    <i class="fas fa-user-shield me-2"></i> Admin Panel
-                  </a>
-                </li>
+              <?php if (!empty($_SESSION['role'])): ?>
+                <?php if ($_SESSION['role'] === 'jobseeker'): ?>
+                  <li><a class="dropdown-item" href="jobseeker_panel.php"><i class="fas fa-user me-2"></i> Jobseeker Panel</a></li>
+                <?php elseif ($_SESSION['role'] === 'employer'): ?>
+                  <li><a class="dropdown-item" href="employer_dashboard.php"><i class="fas fa-building me-2"></i> Employer Panel</a></li>
+                <?php elseif ($_SESSION['role'] === 'training_center'): ?>
+                  <li><a class="dropdown-item" href="training_dashboard.php"><i class="fas fa-school me-2"></i> Training Center Panel</a></li>
+                <?php elseif ($_SESSION['role'] === 'admin'): ?>
+                  <li><a class="dropdown-item" href="admin_panel.php"><i class="fas fa-user-shield me-2"></i> Admin Panel</a></li>
+                <?php endif; ?>
               <?php endif; ?>
 
               <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item text-danger" href="logout.php">
-                  <i class="fas fa-sign-out-alt me-2"></i> Logout
-                </a>
-              </li>
-
+              <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
             <?php else: ?>
-              <li>
-                <a class="dropdown-item" href="login.php">
-                  <i class="fas fa-sign-in-alt me-2"></i> Sign In
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="register.php">
-                  <i class="fas fa-user-plus me-2"></i> Sign Up
-                </a>
-              </li>
+              <li><a class="dropdown-item" href="login.php"><i class="fas fa-sign-in-alt me-2"></i> Sign In</a></li>
+              <li><a class="dropdown-item" href="register.php"><i class="fas fa-user-plus me-2"></i> Sign Up</a></li>
             <?php endif; ?>
-
           </ul>
         </div>
-
       </div>
     </div>
   </nav>
 </div>
+
+<!-- Include your custom CSS for navbar here or in a separate file -->
+<link rel="stylesheet" href="css/navbar.css">
 
 <!-- Custom Styles -->
 <style>

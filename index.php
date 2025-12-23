@@ -62,7 +62,7 @@
                     <img src="img/slider.jpg" class="img-fluid" alt="Image">
                     <div class="carousel-caption">
                         <div class="text-center p-4" style="max-width: 900px;">
-                            <h4 class="text-white text-uppercase fw-bold mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.1s">Bridge between Nepali Talent & GCC Opportunity</h4>
+                            <p class="text-white text-uppercase fw-bold mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.1s">Bridge between Nepali Talent & GCC Opportunity</p>
                             <h1 class="display-1 text-capitalize text-white mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.3s"> Safe, legal GCC jobs.</h1>
                             <p class="text-white mb-4 mb-md-5 fs-5 wow fadeInUp" data-wow-delay="0.5s">Complete career support for Nepalese job seekers in GCC countries.
                             </p>
@@ -83,7 +83,7 @@
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content rounded-0">
                 <div class="modal-header">
-                    <h4 class="modal-title text-secondary mb-0" id="exampleModalLabel">Search by keyword</h4>
+                    <p class="modal-title text-secondary mb-0" id="exampleModalLabel">Search by keyword</p>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body d-flex align-items-center">
@@ -111,22 +111,22 @@
                 </div>
                 <div class="col-xl-7 wow fadeInRight" data-wow-delay="0.3s">
                     <h5 class="sub-title pe-3">About the company</h5>
-                    <h1 class="display-5 mb-4">We’re Trusted Immigration Consultant Agency.</h1>
+                    <h2 class="display-5 mb-4">We’re Trusted Immigration Consultant Agency.</h2>
                     <div class="row gy-4 align-items-center">
                         <div class="col-12 col-sm-6 d-flex align-items-center">
                             <i class="fas fa-map-marked-alt fa-3x text-secondary"></i>
-                            <h5 class="ms-4">Best Immigration Resources</h5>
+                            <p class="ms-4">Best Immigration Resources</p>
                         </div>
                         <div class="col-12 col-sm-6 d-flex align-items-center">
                             <i class="fas fa-passport fa-3x text-secondary"></i>
-                            <h5 class="ms-4">Skill development assistance</h5>
+                            <p class="ms-4">Skill development assistance</p>
                         </div>
                         <div class="col-4 col-md-3">
                             <div class="bg-light text-center rounded p-3">
                                 <div class="mb-2">
                                     <i class="fas fa-ticket-alt fa-4x text-primary"></i>
                                 </div>
-                                <h1 class="display-5 fw-bold mb-2" style="font-size: 20px;">Expertise with 10+</h1>
+                                <h2 class="display-5 fw-bold mb-2" style="font-size: 20px;">Expertise with 10+</h2>
                                 <p class="text-muted mb-0"> Years Experience in GCC</p>
                             </div>
                         </div>
@@ -174,9 +174,9 @@
         <div class="container">
             <div class="section-title text-center mb-5 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="sub-style">
-                    <h5 class="sub-title text-primary px-3">Why Choose Us</h5>
+                    <h2 class="sub-title text-primary px-3">Why Choose Us</h2>
                 </div>
-                <h1 class="display-5 mb-4">Offer Tailor Made Services That Our Client Requires</h1>
+                <h2 class="display-5 mb-4">Offer Tailor Made Services That Our Client Requires</h2>
             </div>
             <div class="row g-4 justify-content-center text-center">
                 <div class="col-md-6 col-lg-6 col-xl-3 wow fadeInUp" data-wow-delay="0.1s">
@@ -185,7 +185,7 @@
                             <i class="fas fa-dollar-sign fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h5 class="mb-3">Cost-Effective</h5>
+                            <h2 class="mb-3">Cost-Effective</h2>
                             <p class="mb-3" style="text-align: justify;">We provide affordable solutions without compromising on quality. Our services are designed to fit your budget while ensuring you get maximum value. With transparent pricing and no hidden costs, you can achieve your goals without financial strain.</p>
                             <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
                         </div>
@@ -197,7 +197,7 @@
                             <i class="fab fa-cc-visa fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h5 class="mb-3">Visa Assistance</h5>
+                            <h2 class="mb-3">Visa Assistance</h2>
                             <p class="mb-3 " style="text-align: justify;">Navigating visa procedures can be challenging, but our expert team is here to guide you every step of the way. From document preparation to application submission, we ensure accuracy and compliance, making your visa process smooth and stress-free.</p>
                             <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
                         </div>
@@ -209,7 +209,7 @@
                             <i class="fas fa-atlas fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h5 class="mb-3">Faster Processing</h5>
+                            <h2 class="mb-3">Faster Processing</h2>
                             <p class="mb-3" style="text-align: justify;">Time is valuable, and we understand the urgency of your needs. Our streamlined processes and expert handling reduce delays, ensuring faster turnaround times. With us, you can move forward confidently without unnecessary waiting.</p>
                             <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
                         </div>
@@ -221,7 +221,7 @@
                             <i class="fas fa-users fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h5 class="mb-3">Direct Interviews</h5>
+                            <h2 class="mb-3">Direct Interviews</h2>
                             <p class="mb-3" style="text-align: justify;">We connect you directly with trusted employers and institutions, eliminating unnecessary intermediaries. This direct approach enhances transparency, builds trust, and increases your chances of success in securing opportunities.</p>
                             <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
                         </div>
@@ -244,9 +244,9 @@
         <div class="container">
             <div class="section-title text-center wow fadeInUp" data-wow-delay="0.1s" style="margin-bottom: 70px;">
                 <div class="sub-style">
-                    <h5 class="sub-title text-primary px-3">COUNTRIES WE OFFER</h5>
+                    <h2 class="sub-title text-primary px-3">COUNTRIES WE OFFER</h2>
                 </div>
-                <h1 class="display-5 mb-4">Career Counselling and Guidance for following Countries</h1>
+                <p class="display-5 mb-4">Career Counselling and Guidance for following Countries</p>
             </div>
 
             <!-- Countries Grid -->

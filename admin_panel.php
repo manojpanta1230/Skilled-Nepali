@@ -869,152 +869,473 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 
             <!-- Content based on active tab -->
             <?php if($active_tab == 'users'): ?>
-                <!-- USERS MANAGEMENT -->
-                <div class="row">
-                    <div class="col-12">
-                        <!-- Pending Users -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex align-items-center">
-                                <i class="fas fa-clock text-warning me-2"></i>
-                                <h5 class="mb-0">Pending User Approvals</h5>
-                                <span class="badge bg-warning rounded-pill ms-2"><?= $stats['pending_users'] ?></span>
+       
+    <!-- USERS MANAGEMENT -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Pending Users (All roles together) -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-clock text-warning me-2"></i>
+                    <h5 class="mb-0">Pending User Approvals</h5>
+                    <span class="badge bg-warning rounded-pill ms-2"><?= $stats['pending_users'] ?></span>
+                </div>
+                <div class="card-body">
+                    <?php 
+                    // Reset the pending users query to fetch all again
+                    $users_pending = $mysqli->query("SELECT * FROM users WHERE status='pending' ORDER BY role, id");
+                    
+                    if ($users_pending->num_rows > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Company</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php $i=1; while($u=$users_pending->fetch_assoc()): ?>
+                                <tr>
+                                    <td><strong><?= $i++ ?></strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><?= htmlspecialchars($u['email']) ?></td>
+                                    <td>
+                                        <?php 
+                                        $role_badge_color = [
+                                            'jobseeker' => 'primary',
+                                            'employer' => 'success',
+                                            'training_center' => 'info',
+                                            'admin' => 'danger'
+                                        ];
+                                        $color = $role_badge_color[$u['role']] ?? 'secondary';
+                                        ?>
+                                        <span class="badge-modern bg-<?= $color ?>"><?= $u['role'] ?></span>
+                                    </td>
+                                    <td><?= htmlspecialchars($u['company']) ?></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="?approve_user=<?= $u['id'] ?>" class="btn btn-modern btn-success btn-sm">
+                                                <i class="fas fa-check"></i> Approve
+                                            </a>
+                                            <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>No pending users</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Approved Users with Tabs -->
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-user-check text-success me-2"></i>
+                    <h5 class="mb-0">Approved Users</h5>
+                    <span class="badge bg-success rounded-pill ms-2"><?= $stats['approved_users'] ?></span>
+                </div>
+                
+                <div class="card-body p-0">
+                    <!-- Tab Navigation -->
+                    <nav>
+                        <div class="nav nav-tabs border-bottom-0 px-3 pt-3" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="nav-all-tab" data-bs-toggle="tab" data-bs-target="#nav-all" type="button" role="tab">
+                                All Users
+                                <span class="badge bg-secondary ms-1"><?= $stats['approved_users'] ?></span>
+                            </button>
+                            
+                            <?php 
+                            // Get counts for each role
+                            $jobseekers_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='jobseeker'")->fetch_assoc()['count'];
+                            $employers_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='employer'")->fetch_assoc()['count'];
+                            $training_centers_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='training_center'")->fetch_assoc()['count'];
+                            $admins_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='admin'")->fetch_assoc()['count'];
+                            ?>
+                            
+                            <button class="nav-link" id="nav-jobseekers-tab" data-bs-toggle="tab" data-bs-target="#nav-jobseekers" type="button" role="tab">
+                                <i class="fas fa-user-graduate me-1"></i> Job Seekers
+                                <span class="badge bg-primary ms-1"><?= $jobseekers_count ?></span>
+                            </button>
+                            
+                            <button class="nav-link" id="nav-employers-tab" data-bs-toggle="tab" data-bs-target="#nav-employers" type="button" role="tab">
+                                <i class="fas fa-briefcase me-1"></i> Employers
+                                <span class="badge bg-success ms-1"><?= $employers_count ?></span>
+                            </button>
+                            
+                            <button class="nav-link" id="nav-training-centers-tab" data-bs-toggle="tab" data-bs-target="#nav-training-centers" type="button" role="tab">
+                                <i class="fas fa-university me-1"></i> Training Centers
+                                <span class="badge bg-info ms-1"><?= $training_centers_count ?></span>
+                            </button>
+                            
+                            <button class="nav-link" id="nav-admins-tab" data-bs-toggle="tab" data-bs-target="#nav-admins" type="button" role="tab">
+                                <i class="fas fa-user-shield me-1"></i> Admins
+                                <span class="badge bg-danger ms-1"><?= $admins_count ?></span>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content p-3" id="nav-tabContent">
+                        <!-- All Users Tab -->
+                        <div class="tab-pane fade show active" id="nav-all" role="tabpanel">
+                            <?php 
+                            // Reset approved users query
+                            $users_approved = $mysqli->query("SELECT * FROM users WHERE status='active' ORDER BY role, name");
+                            
+                            if ($users_approved->num_rows > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Current Role</th>
+                                            <th>Company</th>
+                                            <th>Change Role</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i=1; while($u=$users_approved->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><strong><?= $i++ ?></strong></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                        <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['email']) ?></td>
+                                            <td>
+                                                <?php 
+                                                $color = $role_badge_color[$u['role']] ?? 'secondary';
+                                                ?>
+                                                <span class="badge-modern bg-<?= $color ?>"><?= htmlspecialchars($u['role']) ?></span>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['company']) ?></td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                    <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
+                                                        <option value="">Select Role</option>
+                                                        <option value="jobseeker" <?= $u['role']=='jobseeker'?'selected':''; ?>>Jobseeker</option>
+                                                        <option value="employer" <?= $u['role']=='employer'?'selected':''; ?>>Employer</option>
+                                                        <option value="training_center" <?= $u['role']=='training_center'?'selected':''; ?>>Training Center</option>
+                                                        <option value="admin" <?= $u['role']=='admin'?'selected':''; ?>>Admin</option>
+                                                    </select>
+                                                    <button name="update_role" class="btn btn-modern btn-primary btn-sm">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                    <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="card-body">
-                                <?php if ($users_pending->num_rows > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-modern">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Email</th>
-                                                <th>Role</th>
-                                                <th>Company</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php $i=1; while($u=$users_pending->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><strong><?= $i++ ?></strong></td>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="bg-primary rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                            <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
-                                                            <small class="text-muted">ID: <?= $u['id'] ?></small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['email']) ?></td>
-                                                <td>
-                                                    <span class="badge-modern bg-info"><?= $u['role'] ?></span>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['company']) ?></td>
-                                                <td>
-                                                    <div class="btn-group" role="group">
-                                                        <a href="?approve_user=<?= $u['id'] ?>" class="btn btn-modern btn-success btn-sm">
-                                                            <i class="fas fa-check"></i> Approve
-                                                        </a>
-                                                        <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                                            <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                            <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
-                                                                <i class="fas fa-trash"></i> Delete
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-user-check"></i>
+                                    <p>No approved users yet</p>
                                 </div>
-                                <?php else: ?>
-                                    <div class="empty-state">
-                                        <i class="fas fa-users"></i>
-                                        <p>No pending users</p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                            <?php endif; ?>
                         </div>
 
-                        <!-- Approved Users -->
-                        <div class="card">
-                            <div class="card-header d-flex align-items-center">
-                                <i class="fas fa-user-check text-success me-2"></i>
-                                <h5 class="mb-0">Approved Users</h5>
-                                <span class="badge bg-success rounded-pill ms-2"><?= $stats['approved_users'] ?></span>
-                            </div>
-                            <div class="card-body">
-                                <?php if ($users_approved->num_rows > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-modern">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Email</th>
-                                                <th>Current Role</th>
-                                                <th>Company</th>
-                                                <th>Change Role</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php $i=1; while($u=$users_approved->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><strong><?= $i++ ?></strong></td>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="bg-success rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                            <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
-                                                            <small class="text-muted">ID: <?= $u['id'] ?></small>
-                                                        </div>
+                        <!-- Job Seekers Tab -->
+                        <div class="tab-pane fade" id="nav-jobseekers" role="tabpanel">
+                            <?php 
+                            $jobseekers = $mysqli->query("SELECT * FROM users WHERE status='active' AND role='jobseeker' ORDER BY name");
+                            
+                            if ($jobseekers->num_rows > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Company</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i=1; while($u=$jobseekers->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><strong><?= $i++ ?></strong></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                        <?= strtoupper(substr($u['name'], 0, 1)) ?>
                                                     </div>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['email']) ?></td>
-                                                <td>
-                                                    <span class="badge-modern bg-info"><?= htmlspecialchars($u['role']) ?></span>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['company']) ?></td>
-                                                <td>
-                                                    <form method="post" class="d-flex gap-2 align-items-center">
-                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
-                                                            <option value="">Select Role</option>
-                                                            <option value="jobseeker" <?= $u['role']=='jobseeker'?'selected':''; ?>>Jobseeker</option>
-                                                            <option value="employer" <?= $u['role']=='employer'?'selected':''; ?>>Employer</option>
-                                                            <option value="training_center" <?= $u['role']=='training_center'?'selected':''; ?>>Training Center</option>
-                                                            <option value="admin" <?= $u['role']=='admin'?'selected':''; ?>>Admin</option>
-                                                        </select>
-                                                        <button name="update_role" class="btn btn-modern btn-primary btn-sm">
-                                                            <i class="fas fa-save"></i>
-                                                        </button>
-                                                        <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <?php else: ?>
-                                    <div class="empty-state">
-                                        <i class="fas fa-user-check"></i>
-                                        <p>No approved users yet</p>
-                                    </div>
-                                <?php endif; ?>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['email']) ?></td>
+                                            <td><?= htmlspecialchars($u['company']) ?></td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                    <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
+                                                        <option value="jobseeker" selected>Jobseeker</option>
+                                                        <option value="employer">Employer</option>
+                                                        <option value="training_center">Training Center</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                    <button name="update_role" class="btn btn-modern btn-primary btn-sm">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                    <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
+                                </table>
                             </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <p>No job seekers found</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Employers Tab -->
+                        <div class="tab-pane fade" id="nav-employers" role="tabpanel">
+                            <?php 
+                            $employers = $mysqli->query("SELECT * FROM users WHERE status='active' AND role='employer' ORDER BY name");
+                            
+                            if ($employers->num_rows > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Company</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i=1; while($u=$employers->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><strong><?= $i++ ?></strong></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                        <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['email']) ?></td>
+                                            <td><?= htmlspecialchars($u['company']) ?></td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                    <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
+                                                        <option value="jobseeker">Jobseeker</option>
+                                                        <option value="employer" selected>Employer</option>
+                                                        <option value="training_center">Training Center</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                    <button name="update_role" class="btn btn-modern btn-primary btn-sm">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                    <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-briefcase"></i>
+                                    <p>No employers found</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Training Centers Tab -->
+                        <div class="tab-pane fade" id="nav-training-centers" role="tabpanel">
+                            <?php 
+                            $training_centers = $mysqli->query("SELECT * FROM users WHERE status='active' AND role='training_center' ORDER BY name");
+                            
+                            if ($training_centers->num_rows > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Company</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i=1; while($u=$training_centers->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><strong><?= $i++ ?></strong></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-info rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                        <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['email']) ?></td>
+                                            <td><?= htmlspecialchars($u['company']) ?></td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                    <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
+                                                        <option value="jobseeker">Jobseeker</option>
+                                                        <option value="employer">Employer</option>
+                                                        <option value="training_center" selected>Training Center</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                    <button name="update_role" class="btn btn-modern btn-primary btn-sm">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                    <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-university"></i>
+                                    <p>No training centers found</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Admins Tab -->
+                        <div class="tab-pane fade" id="nav-admins" role="tabpanel">
+                            <?php 
+                            $admins = $mysqli->query("SELECT * FROM users WHERE status='active' AND role='admin' ORDER BY name");
+                            
+                            if ($admins->num_rows > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Company</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i=1; while($u=$admins->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><strong><?= $i++ ?></strong></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-danger rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                        <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($u['email']) ?></td>
+                                            <td><?= htmlspecialchars($u['company']) ?></td>
+                                            <td>
+                                                <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                    <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
+                                                        <option value="jobseeker">Jobseeker</option>
+                                                        <option value="employer">Employer</option>
+                                                        <option value="training_center">Training Center</option>
+                                                        <option value="admin" selected>Admin</option>
+                                                    </select>
+                                                    <button name="update_role" class="btn btn-modern btn-primary btn-sm">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                    <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-user-shield"></i>
+                                    <p>No admin users found</p>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
-
+            </div>
+        </div>
+                            </div>
             <?php elseif($active_tab == 'jobs'): ?>
                 <!-- JOBS MANAGEMENT -->
                 <div class="row">

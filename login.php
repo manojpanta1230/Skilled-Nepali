@@ -5,7 +5,8 @@ if (is_logged_in()) {
     $u = current_user();
     if ($u['role'] === 'admin') header('Location: admin_panel.php');
     elseif ($u['role'] === 'jobseeker') header('Location: jobseeker_panel.php');
-    else header('Location: employer_dashboard.php');
+    elseif ($u['role'] === 'training_center') header('Location: training_dashboard.php');
+   
     exit;
 }
 

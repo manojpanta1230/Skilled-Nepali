@@ -868,7 +868,7 @@ if($active_tab == 'applications') {
             </div>
             
             <div class="sidebar-item">
-                <a href="jobs.php#trainings" class="sidebar-link" onclick="closeSidebarOnMobile()">
+                <a href="jobs.php?type=training" class="sidebar-link" onclick="closeSidebarOnMobile()">
                     <i class="fas fa-graduation-cap"></i>
                     <span>Browse Trainings</span>
                 </a>

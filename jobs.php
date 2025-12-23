@@ -9,6 +9,7 @@ $search     = isset($_GET['search']) ? $mysqli->real_escape_string($_GET['search
 $location   = isset($_GET['country']) ? $mysqli->real_escape_string($_GET['country']) : '';
 $type       = isset($_GET['type']) ? $mysqli->real_escape_string($_GET['type']) : '';
 $category   = isset($_GET['category']) ? $mysqli->real_escape_string($_GET['category']) : '';
+$duration   = isset($_GET['duration']) ? $mysqli->real_escape_string($_GET['duration']) : '';
 
 /* -------------------------
     FETCH CATEGORIES
@@ -630,44 +631,42 @@ body{
             while ($course = $courses->fetch_assoc()):
                 $logo = (!empty($course['logo']) && file_exists($course['logo'])) ? $course['logo'] : 'assets/default_logo.png';
     ?>
-        <div class="col-lg-4 col-md-6">
-            <div class="card-box">
-                <span class="badge-new">
-                    <i class="fas fa-certificate"></i> Featured
-                </span>
-                
-                <div class="flex-box">
-                    <img src="<?= $logo ?>" class="company-logo" alt="<?= $course['company'] ?>">
+    <div class="col-lg-4 col-md-6">
+    <a href="course_details.php?id=<?= $course['id'] ?>" class="card-link" style="text-decoration: none; color: inherit;">
+        <div class="card-box">
+            <div class="flex-box">
+                <img src="<?= $logo ?>" class="company-logo" alt="<?= $course['company'] ?>">
 
-                    <div style="flex: 1;">
-                        <h5 class="training-title"><?= $course['title'] ?></h5>
-                        
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <span class="info-text company-name"><?= $course['company'] ?></span>
+                <div style="flex: 1;">
+                    <h5 class="training-title"><?= $course['title'] ?></h5>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-building"></i>
                         </div>
+                        <span class="info-text company-name"><?= $course['company'] ?></span>
+                    </div>
 
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <span class="info-text"><?= $course['location'] ?></span>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-clock"></i>
                         </div>
+                        <span class="info-text"><?= $course['duration'] ?></span>
+                    </div>
 
-                        <div class="cost-badge">
-                            <i class="fas fa-tag"></i>
-                            $<?= $course['cost'] ?>
-                        </div>
+                    <div class="cost-badge">
+                        <i class="fas fa-tag"></i>
+                        $<?= $course['cost'] ?>
                     </div>
                 </div>
+            </div>
 
-                <div class="training-description">
-                    <?= substr($course['structure'], 0, 120) ?>...
-                </div>
+            <div class="training-description">
+                <?= substr($course['structure'], 0, 120) ?>...
             </div>
         </div>
+    </a>
+</div>
     <?php
             endwhile;
         else:

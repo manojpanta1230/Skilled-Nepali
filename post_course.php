@@ -38,12 +38,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'pantamanoj08@gmail.com'; // your email
-                $mail->Password = 'qjms snqf uzjn pvdc';   // your app password
+               $mail->Username = 'inquiry@skillednepali.com';
+        $mail->Password = 'adgjl@900';
                 $mail->SMTPSecure = 'tls';
                 $mail->Port = 587;
 
-                $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal');
+                $mail->setFrom('inquiry@skillednepali.com', 'Job Portal');
                 $mail->addAddress($admin_email, 'Admin');
                 $mail->isHTML(true);
                 $mail->Subject = 'New Course Posted - Admin Approval Needed';

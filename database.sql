@@ -79,4 +79,16 @@ CREATE TABLE `courses` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `training_center_id` (`training_center_id`),
-  CONSTRAINT `fk_courses_training_center` FOREIGN KEY (`training_center_id`) REFERENCES `users` (`id`) ON DELETE CASCA_
+  CONSTRAINT `fk_courses_training_center` FOREIGN KEY (`training_center_id`) REFERENCES `users` (`id`) ON DELETE CASCADE)
+
+-- Add description column (TEXT type for longer content)
+ALTER TABLE `courses` 
+ADD COLUMN `description` TEXT DEFAULT NULL AFTER `structure`;
+
+-- Add duration column (VARCHAR for flexible time formats)
+ALTER TABLE `courses` 
+ADD COLUMN `duration` VARCHAR(100) DEFAULT NULL AFTER `cost`;
+
+-- Add prerequisites column (TEXT type for potentially long lists)
+ALTER TABLE `courses` 
+ADD COLUMN `prerequisites` TEXT DEFAULT NULL AFTER `duration`;

@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Allow only jobseekers
+// Only allow jobseekers
 if (!is_logged_in() || !is_jobseeker()) {
     echo '<div class="alert alert-warning text-center mt-5">
             ⚠️ Only jobseekers can apply for training courses. Please login as a jobseeker.
@@ -41,11 +41,13 @@ if (!$course) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name    = $mysqli->real_escape_string(trim($_POST['name']));
-    $email   = $mysqli->real_escape_string(trim($_POST['email']));
-    $phone   = $mysqli->real_escape_string(trim($_POST['phone']));
-    $address = $mysqli->real_escape_string(trim($_POST['address']));
-    $notes   = $mysqli->real_escape_string(trim($_POST['notes'] ?? ''));
+    $name         = $mysqli->real_escape_string(trim($_POST['name']));
+    $email        = $mysqli->real_escape_string(trim($_POST['email']));
+    $country_code = $mysqli->real_escape_string($_POST['country_code']);
+    $phone_number = $mysqli->real_escape_string(trim($_POST['phone']));
+    $phone        = $country_code . ' ' . $phone_number;
+    $address      = $mysqli->real_escape_string(trim($_POST['address']));
+    $notes        = $mysqli->real_escape_string(trim($_POST['notes'] ?? ''));
 
     // Ensure upload directories exist
     $resume_dir = 'uploads/training_resumes/';
@@ -98,14 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $mail = new PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'pantamanoj08@gmail.com'; // your gmail
-            $mail->Password = 'qjms snqf uzjn pvdc';    // app password
-            $mail->SMTPSecure = 'tls';
-            $mail->Port = 587;
+            $mail->Host       = 'skillednepali.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'inquiry@skillednepali.com';
+            $mail->Password   = 'adgjl@900';
+            $mail->SMTPSecure = 'ssl';
+            $mail->Port       = 465;
 
-            $mail->setFrom('pantamanoj08@gmail.com', 'Job Portal');
+            $mail->setFrom('inquiry@skillednepali.com', 'Job Portal of Skilled Nepali');
             $mail->addAddress($course['trainer_email'], $course['trainer_company']); // training center
             $mail->addAddress($admin_email, 'Admin'); // admin
 
@@ -127,7 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ";
 
             $mail->send();
-
         } catch (Exception $e) {
             error_log("Mailer Error (Training Apply): " . $mail->ErrorInfo);
         }
@@ -155,7 +156,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6">
                 <label class="form-label">Phone Number</label>
-                <input type="text" name="phone" class="form-control" required>
+                <div class="input-group">
+                    <select name="country_code" class="form-select" style="max-width: 130px;" required>
+                        <option value="+977">🇳🇵 Nepal (+977)</option>
+                        <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+                        <option value="+971">🇦🇪 UAE (+971)</option>
+                        <option value="+974">🇶🇦 Qatar (+974)</option>
+                        <option value="+965">🇰🇼 Kuwait (+965)</option>
+                        <option value="+968">🇴🇲 Oman (+968)</option>
+                        <option value="+973">🇧🇭 Bahrain (+973)</option>
+                    </select>
+                    <input type="text" name="phone" class="form-control" placeholder="Enter phone number" required>
+                </div>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Address</label>
@@ -184,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <style>
 form { max-width: 800px; margin: auto; }
-input, textarea { border-radius: 10px; }
+input, textarea, select { border-radius: 10px; }
 </style>
 
 <?php include 'portal_footer.php'; ?>
