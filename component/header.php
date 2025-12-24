@@ -9,7 +9,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Include database/config if needed
-include_once './config.php'; // Adjust the path depending on where header.php is
 ?>
 <!-- Navbar Start -->
 <div class="container-fluid nav-bar p-0">

@@ -6,7 +6,6 @@ if (is_logged_in()) {
     if ($u['role'] === 'admin') header('Location: admin_panel.php');
     elseif ($u['role'] === 'jobseeker') header('Location: jobseeker_panel.php');
     elseif ($u['role'] === 'training_center') header('Location: training_dashboard.php');
-   
     exit;
 }
 
@@ -25,9 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     if ($u && password_verify($password, $u['password'])) {
-        if ($u['status'] !== 'active') {
-            $error = '⏳ Your account is pending approval by admin.';
-        } else {
+
             $_SESSION['user_id'] = $u['id'];
              $_SESSION['name']    = $u['name'];
              $_SESSION['role']    = $u['role'];
@@ -38,12 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             elseif ($u['role'] === 'jobseeker') {
                 header('Location: jobseeker_panel.php');
             }
+            elseif ($u['role'] === 'training_center') {
+                header('Location: training_dashboard.php');
+            }
             else {
                 header('Location: employer_dashboard.php');
             }
             exit;
         }
-    } else {
+    else {
         $error = '❌ Invalid email or password.';
     }
 }
