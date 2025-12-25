@@ -10,7 +10,7 @@ if (isset($_SESSION['user_id'])) {
 
 $errors = [];
 $success = '';
-$showOtpModal = false; // Flag to trigger OTP modal
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
         $password = $_POST['password'] ?? '';
         $role = $_POST['role'];
+         $country = trim($_POST['country'] ?? ''); 
         $company = trim($_POST['company'] ?? '');
         $designation = trim($_POST['designation'] ?? '');
         $imagePath = null;
@@ -73,7 +74,7 @@ if ($application_for === 'Others' && !empty($other_job_category)) {
             if (empty($applicant_type)) $errors[] = "Please select applicant type.";
             if ($experience_years < 0) $errors[] = "Years of experience must be a valid number.";
              if (empty($application_for)) $errors[] = "Please select application type.";
-    if ($_POST['application_for'] === 'Others' && empty($other_job_category)) {
+            if ($_POST['application_for'] === 'Others' && empty($other_job_category)) {
         $errors[] = "Please specify your job category.";
     }
         }
@@ -101,33 +102,57 @@ if ($application_for === 'Others' && !empty($other_job_category)) {
 // Replace your jobseeker INSERT query with this fixed version:
 
 if ($role === 'jobseeker') {
-    $stmt = $mysqli->prepare("
-        INSERT INTO users 
-        (name, email, password, role, status, application_for, experience_years, past_experience, applicant_type) 
-        VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?)
-    ");
+    // Handle CV upload
+    $cvPath = null;
+    if (isset($_FILES['cv']) && $_FILES['cv']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!in_array($_FILES['cv']['type'], $allowedTypes)) {
+            $errors[] = "Only PDF, DOC, or DOCX files are allowed for CV.";
+        } else {
+            $ext = pathinfo($_FILES['cv']['name'], PATHINFO_EXTENSION);
+            $newName = uniqid('cv_', true) . "." . $ext;
+            $uploadDir = 'uploads/cvs/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
-    $stmt->bind_param(
-        "sssssiss",
-        $name,
-        $email,
-        $hash,
-        $role,
-        $application_for,
-        $experience_years,
-        $past_experience,
-        $applicant_type
-    );
+            $cvPath = $uploadDir . $newName;
 
-    if ($stmt->execute()) {
-        $success = "✅ Registration successful! Redirecting to login page ...";
-        $_POST = [];
-        echo '<meta http-equiv="refresh" content="3;url=login.php">';
-    } else {
-        $errors[] = "Database error: " . $mysqli->error;
+            if (!move_uploaded_file($_FILES['cv']['tmp_name'], $cvPath)) {
+                $errors[] = "Failed to upload CV.";
+            }
+        }
     }
 
-    $stmt->close();
+    if (!$errors) {
+        $stmt = $mysqli->prepare("
+            INSERT INTO users 
+            (name, email, password, role, country, status, application_for, experience_years, past_experience, applicant_type, cv) 
+            VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "ssssssisss",
+            $name,
+            $email,
+            $hash,
+            $role,
+            $country,
+            $application_for,
+            $experience_years,
+            $past_experience,
+            $applicant_type,
+            $cvPath
+        );
+
+        if ($stmt->execute()) {
+            $success = "✅ Registration successful! Redirecting to login page ...";
+            $_POST = [];
+            echo '<meta http-equiv="refresh" content="3;url=login.php">';
+        } else {
+            $errors[] = "Database error: " . $mysqli->error;
+        }
+
+        $stmt->close();
+    }
 }
 
  else {
@@ -586,9 +611,7 @@ if ($role === 'jobseeker') {
                 </div>
             <?php endif; ?>
 
-            <?php if ($success && !$showOtpModal): ?>
-                <div class="alert alert-success"><?= $success ?></div>
-            <?php endif; ?>
+           
 
             <form method="post" id="registerForm" enctype="multipart/form-data">
                 <input type="hidden" name="role" id="roleSelect" value="<?= htmlspecialchars($_POST['role'] ?? '') ?>" required>
@@ -686,33 +709,32 @@ if ($role === 'jobseeker') {
                 
                 <!-- Jobseeker Fields -->
 <!-- Jobseeker Fields -->
+<!-- Jobseeker Fields -->
 <div id="jobseekerFields" style="display: <?= (($_POST['role'] ?? '') === 'jobseeker') ? 'block' : 'none' ?>;">
     <div class="jobseeker-card">
         <h4 style="text-align:center; margin-bottom:20px;">Jobseeker Details</h4>
-        
-    <div class="field-group">
+   <div class="field-group">
     <label for="application_for">Job Category</label>
     <div class="form-group">
       <select name="application_for" id="application_for" class="form-control">
     <option value="">Select Job Category</option>
     <?php
-    $jobs = [
-        "Labour","Cleaner","Helper","Sweeper","Watchman","Office Boy","Washing Worker","Building Worker",
-        "Construction Worker","Bell man","Room Attendant","Mason","Plaster Worker","Block Makers","Carpenter",
-        "Mechanical helper","Electrical helper","Steel Fixture","Tile Fixture","Plumber","Pipe Fitter","Welder",
-        "Scaffolder","A/C Mechanic","Electricians","Tailors","Assistant Tailors","Laundry Man","Washer Man",
-        "Barbers","Shop Assistant","Messenger","Technician","Digger","Ceramic Worker","Painter","Gardeners",
-        "Reinforce Fitter","Construction","Cabling Technician","Receptionist","Designer","Professional","Cashier",
-        "Telephone Operator","Salesman","Assistant Cook","Typist","Bakers","Assistant Bakers","Drivers Light",
-        "Waiter","Cook","Security Guard","Beautician","Driver Light GCC","Store Keeper","Machine Operator",
-        "Computer Operator","Photographer","Correspondent","Medical Assistant","Driver Heavy","Front Office Personnel",
-        "Sales Executive","Sales Representative","Clerk","Secretary","Driver Heavy GCC","Representative",
-        "Business Executive","Administrative","Translator","Foreman","Plant Operators","Construction Supervisor",
-        "Pharmacist","Laboratory Technician","Overseer","Construction Equipment Operators","Scaffolding Supervisor",
-        "Draughtsman","Computer Engineer","Accountant","Physiotherapist","Nurse","Civil Engineer","Electrical Engineer",
-        "Mechanical Engineer","Electronic Engineer","Telecom Engineer","Safety Engineer","HR Executive","Manager",
-        "General Manager","General Physician (Doctor)","Surgeon","Chartered Accountant"
-    ];
+  $jobs = [
+    "A/C Mechanic","Assistant Bakers","Assistant Cook","Assistant Tailors","Barbers","Bakers",
+    "Beautician","Bell man","Block Makers","Building Worker","Cabling Technician","Carpenter",
+    "Cashier","Ceramic Worker","Cleaner","Clerk","Construction","Construction Equipment Operators",
+    "Construction Supervisor","Construction Worker","Correspondent","Cook","Digger","Driver Heavy",
+    "Driver Heavy GCC","Driver Light GCC","Drivers Light","Electricians","Gardeners","Helper",
+    "Labour","Laundry Man","Machine Operator","Mason","Mechanical helper","Messenger",
+    "Office Boy","Overseer","Painter","Photographer","Pipe Fitter","Plant Operators",
+    "Plaster Worker","Plumber","Reinforce Fitter","Representative","Room Attendant",
+    "Salesman","Scaffolder","Scaffolding Supervisor","Security Guard","Shop Assistant",
+    "Steel Fixture","Store Keeper","Sweeper","Tailors","Telephone Operator",
+    "Tile Fixture","Typist","Waiter","Washing Worker","Washer Man","Watchman","Welder"
+];
+
+sort($jobs, SORT_STRING | SORT_FLAG_CASE);
+
 
     foreach($jobs as $job){
         $selected = (($_POST['application_for'] ?? '') === $job) ? 'selected' : '';
@@ -735,8 +757,7 @@ if ($role === 'jobseeker') {
 </div>
 
 </div>
-
-        
+    
         <div class="field-group">
             <label for="applicant_type">Applicant Type</label>
             <div class="form-group">
@@ -767,6 +788,52 @@ if ($role === 'jobseeker') {
             <label for="past_experience">Past Experience</label>
             <div class="form-group">
                 <textarea name="past_experience" id="past_experience" class="form-control" placeholder="Describe your past work experience"><?= htmlspecialchars($_POST['past_experience'] ?? '') ?></textarea>
+            </div>
+        </div>
+        <div class="field-group">
+    <label for="country">Country</label>
+    <div class="form-group">
+        <select name="country" id="country" class="form-control" required>
+            <option value="">Select Country</option>
+            <option value="Nepal" <?= (($_POST['country'] ?? '') === 'Nepal') ? 'selected' : '' ?>>Nepal</option>
+            <option value="India" <?= (($_POST['country'] ?? '') === 'India') ? 'selected' : '' ?>>India</option>
+            <option value="Bangladesh" <?= (($_POST['country'] ?? '') === 'Bangladesh') ? 'selected' : '' ?>>Bangladesh</option>
+            <option value="Pakistan" <?= (($_POST['country'] ?? '') === 'Pakistan') ? 'selected' : '' ?>>Pakistan</option>
+            <option value="Sri Lanka" <?= (($_POST['country'] ?? '') === 'Sri Lanka') ? 'selected' : '' ?>>Sri Lanka</option>
+            <option value="Afghanistan" <?= (($_POST['country'] ?? '') === 'Afghanistan') ? 'selected' : '' ?>>Afghanistan</option>
+            <option value="Bhutan" <?= (($_POST['country'] ?? '') === 'Bhutan') ? 'selected' : '' ?>>Bhutan</option>
+            <option value="Maldives" <?= (($_POST['country'] ?? '') === 'Maldives') ? 'selected' : '' ?>>Maldives</option>
+            
+            <!-- GCC Countries -->
+            <optgroup label="GCC Countries">
+                <option value="Saudi Arabia" <?= (($_POST['country'] ?? '') === 'Saudi Arabia') ? 'selected' : '' ?>>Saudi Arabia</option>
+                <option value="UAE" <?= (($_POST['country'] ?? '') === 'UAE') ? 'selected' : '' ?>>United Arab Emirates (UAE)</option>
+                <option value="Qatar" <?= (($_POST['country'] ?? '') === 'Qatar') ? 'selected' : '' ?>>Qatar</option>
+                <option value="Kuwait" <?= (($_POST['country'] ?? '') === 'Kuwait') ? 'selected' : '' ?>>Kuwait</option>
+                <option value="Bahrain" <?= (($_POST['country'] ?? '') === 'Bahrain') ? 'selected' : '' ?>>Bahrain</option>
+                <option value="Oman" <?= (($_POST['country'] ?? '') === 'Oman') ? 'selected' : '' ?>>Oman</option>
+            </optgroup>
+            
+            <!-- Other Popular Destinations -->
+        
+        </select>
+    </div>
+</div>
+
+        <div class="field-group">
+            <label for="cv">Upload CV/Resume (PDF, DOC, DOCX)</label>
+            <div class="file-upload">
+                <input type="file" name="cv" id="cvField" accept=".pdf,.doc,.docx" class="file-input">
+                <label for="cvField" class="file-label" style="color: white;">
+                    <i class="fas fa-file-upload"></i>
+                    Upload Your CV
+                </label>
+            </div>
+            
+            <!-- CV FILE NAME DISPLAY -->
+            <div id="cvFileName" style="display:none; margin-top:10px; padding:10px; background:#f0f0f0; border-radius:8px; text-align:center;">
+                <i class="fas fa-file-pdf" style="color:#00A098; margin-right:8px;"></i>
+                <span id="cvName" style="color:#333; font-weight:500;"></span>
             </div>
         </div>
     </div>
@@ -806,7 +873,17 @@ if ($role === 'jobseeker') {
             // Toggle fields based on role
             toggleFields();
         }
+        document.getElementById('cvField').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+
+    if (file) {
+        const fileNameDisplay = document.getElementById('cvFileName');
+        const fileNameText = document.getElementById('cvName');
         
+        fileNameText.textContent = file.name;
+        fileNameDisplay.style.display = 'block';
+    }
+});
         function toggleFields() {
             const role = document.getElementById('roleSelect').value;
             const jobseekerFields = document.getElementById('jobseekerFields');

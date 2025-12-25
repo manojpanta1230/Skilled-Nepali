@@ -7,6 +7,23 @@ $u = current_user();
 $user_id = $u['id'];
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
 
+
+// user data
+$user_res = $mysqli->query("
+    SELECT name, email,application_for,past_experience,applicant_type
+    FROM users
+    WHERE id = $user_id
+");
+$user = $user_res->fetch_assoc();
+
+// cv data
+$cv_res = $mysqli->query("SELECT cv FROM users WHERE id = $user_id");
+$cv_data = $cv_res ? $cv_res->fetch_assoc() : null;
+
+
+// correct folder
+$has_uploaded_cv = !empty($cv_data['cv']);
+
 // ========== FETCH STATISTICS ==========
 // Job applications
 $applied_jobs_count = $mysqli->query("SELECT COUNT(*) as total FROM applications WHERE user_id = $user_id")->fetch_assoc()['total'];
@@ -857,6 +874,14 @@ if($active_tab == 'applications') {
                     <?php endif; ?>
                 </a>
             </div>
+          <div class="sidebar-item">
+    <a href="#cvModal" class="sidebar-link" data-bs-toggle="modal">
+        <i class="fas fa-id-card"></i>
+        <span>View CV</span>
+    </a>
+</div>
+
+
             
         
             
@@ -874,12 +899,7 @@ if($active_tab == 'applications') {
                 </a>
             </div>
             
-            <div class="sidebar-item mt-4">
-                <a href="index.php" class="sidebar-link" onclick="closeSidebarOnMobile()">
-                    <i class="fas fa-home"></i>
-                    <span>Back to Home</span>
-                </a>
-            </div>
+            
             
             <div class="sidebar-item">
                 <a href="logout.php" class="sidebar-link text-danger" onclick="closeSidebarOnMobile()">
@@ -948,7 +968,68 @@ if($active_tab == 'applications') {
                 </li>
                 
             </ul>
+<div class="modal fade" id="cvModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5 class="modal-title">My CV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <?php if ($has_uploaded_cv): ?>
+                 <!-- View CV in browser -->
+<a href="download_cv.php?id=<?= $user_id ?>&action=view" target="_blank" class="btn btn-info">
+    View CV
+</a>
+
+<!-- Download CV -->
+<a href="download_cv.php?id=<?= $user_id ?>&action=download" class="btn btn-primary">
+    Download CV
+</a>
+
+   
+
+                <?php else: ?>
+                    <!-- Auto-generated CV -->
+               <div class="p-4 border rounded">
+    <h3><?= htmlspecialchars($user['name']) ?></h3>
+    <?php if(!empty($user['company'])): ?>
+        <p><strong>Company:</strong> <?= htmlspecialchars($user['company']) ?></p>
+    <?php endif; ?>
+    <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
+    <?php if(!empty($user['application_for'])): ?>
+        <p><strong>Application For:</strong> <?= htmlspecialchars($user['application_for']) ?></p>
+    <?php endif; ?>
+    <?php if(!empty($user['designation'])): ?>
+        <p><strong>Designation:</strong> <?= htmlspecialchars($user['designation']) ?></p>
+    <?php endif; ?>
+    <?php if(!empty($user['experience_years'])): ?>
+        <p><strong>Years of Experience:</strong> <?= htmlspecialchars($user['experience_years']) ?> year(s)</p>
+    <?php endif; ?>
+    <?php if(!empty($user['past_experience'])): ?>
+        <hr>
+        <h5>Experience Details</h5>
+        <p><?= nl2br(htmlspecialchars($user['past_experience'])) ?></p>
+    <?php endif; ?>
+    <?php if(!empty($user['applicant_type'])): ?>
+        <hr>
+        <h5>Additional Info</h5>
+        <p><strong>Applicant Type:</strong> <?= htmlspecialchars($user['applicant_type']) ?></p>
+    <?php endif; ?>
+</div>
+
+                  <button onclick="window.location.href='generate_cv.php?id=<?= $user_id ?>'" class="btn btn-success mt-3">
+    Download Generated CV
+</button>
+
+                <?php endif; ?>
+            </div>
+
+        </div>
+    </div>
+</div>
             <!-- Tab Content -->
             <div class="tab-content">
                 <?php if($active_tab == 'dashboard'): ?>
@@ -1202,7 +1283,8 @@ if($active_tab == 'applications') {
                                 <?php endif; ?>
                             </div>
                         </div>
-                        
+
+      
                         <!-- Training Applications -->
                         <div class="card border-0 shadow-sm">
                             <div class="card-header bg-white border-0">

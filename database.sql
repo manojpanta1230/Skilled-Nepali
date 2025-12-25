@@ -92,3 +92,8 @@ ADD COLUMN `duration` VARCHAR(100) DEFAULT NULL AFTER `cost`;
 -- Add prerequisites column (TEXT type for potentially long lists)
 ALTER TABLE `courses` 
 ADD COLUMN `prerequisites` TEXT DEFAULT NULL AFTER `duration`;
+
+
+
+ALTER TABLE users ADD COLUMN country VARCHAR(100) DEFAULT NULL;
+ALTER TABLE users ADD COLUMN cv VARCHAR(255) DEFAULT NULL;
