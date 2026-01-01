@@ -876,10 +876,13 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'employer_dashboard';
                     <small>Manage your job posts and applications</small>
                 </div>
             </div>
-            <div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <span class="badge bg-primary rounded-pill px-3 py-2">
-                    <i class="fas fa-building me-1"></i> Employer Account
+                    <i class="fas fa-building me-1"></i> <span class="d-none d-md-inline">Employer Account</span><span class="d-md-none">Employer</span>
                 </span>
+                <a href="documentation.php" class="btn btn-info btn-sm">
+                    <i class="fas fa-book me-1"></i> <span class="d-none d-md-inline">View Documentation</span><span class="d-md-none">Docs</span>
+                </a>
             </div>
         </div>
 

@@ -923,10 +923,13 @@ if($active_tab == 'applications') {
                     <small>Track applications and find opportunities</small>
                 </div>
             </div>
-            <div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <span class="badge bg-secondary-color rounded-pill px-3 py-2" style="background: var(--secondary-color);">
-                    <i class="fas fa-user-graduate me-1"></i> Jobseeker Account
+                    <i class="fas fa-user-graduate me-1"></i> <span class="d-none d-md-inline">Jobseeker Account</span><span class="d-md-none">Jobseeker</span>
                 </span>
+                <a href="documentation.php" class="btn btn-info btn-sm">
+                    <i class="fas fa-book me-1"></i> <span class="d-none d-md-inline">View Documentation</span><span class="d-md-none">Docs</span>
+                </a>
             </div>
         </div>
 
@@ -1214,8 +1217,7 @@ if($active_tab == 'applications') {
                                                         <div class="fw-medium"><?= htmlspecialchars($job['job_title']) ?></div>
                                                     </td>
                                                     <td><?= htmlspecialchars($job['employer_company']) ?></td>
-                                                    <td>
-                                                    </td>
+                                                  
                                                     <td><?= htmlspecialchars($job['country']) ?></td>
                                                     <td>
                                                         <?php if($job['salary']): ?>
@@ -1313,8 +1315,7 @@ if($active_tab == 'applications') {
                                                         <div class="fw-medium"><?= htmlspecialchars($course['course_title']) ?></div>
                                                     </td>
                                                     <td><?= htmlspecialchars($course['center_name']) ?></td>
-                                                    <td>
-                                                    </td>
+                                                    
                                                     <td>
                                                         <?php if($course['cost']): ?>
                                                             <span class="text-success fw-medium"><?= htmlspecialchars($course['cost']) ?></span>
