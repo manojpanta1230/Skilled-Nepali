@@ -44,11 +44,19 @@ if ($category !== '') {
 
 $jobQuery .= " ORDER BY j.id DESC";
 $jobs = $mysqli->query($jobQuery);
-$totalJobs = $jobs->num_rows;
+$totalJobs = $mysqli->query("SELECT COUNT(*) as total FROM jobs WHERE status='approved'")->fetch_assoc()['total'];
 
 /* -------------------------
     TRAINING QUERY
 ------------------------- */
+$courseFilters = [];
+
+// Filter by search keyword only (no country)
+if ($search !== '') {
+    $courseFilters[] = "c.title LIKE '%$search%'";
+}
+
+// Start building the query
 $courseQuery = "
     SELECT c.*, u.company, u.image AS logo
     FROM courses c
@@ -56,17 +64,16 @@ $courseQuery = "
     WHERE c.status='approved'
 ";
 
-if ($search !== '') {
-    $courseQuery .= " AND c.title LIKE '%$search%'";
-}
-
-if ($location !== '') {
-    $courseQuery .= " AND c.country LIKE '%$location%'";
+// Add search filters dynamically
+if (count($courseFilters) > 0) {
+    $courseQuery .= " AND " . implode(' AND ', $courseFilters);
 }
 
 $courseQuery .= " ORDER BY c.id DESC";
+
 $courses = $mysqli->query($courseQuery);
-$totalCourses = $courses->num_rows;
+$totalCourses = $mysqli->query("SELECT COUNT(*) as total FROM courses WHERE status='approved'")->fetch_assoc()['total'];
+
 
 ?>
 
@@ -501,19 +508,22 @@ body{
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6">
-                    <select name="country" class="form-select">
-                        <option value="">📍 All Locations</option>
-                        <?php
-                        $gcc_countries = ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Oman', 'Bahrain'];
-                        foreach ($gcc_countries as $country):
-                        ?>
-                            <option value="<?= $country ?>" <?= ($location == $country) ? 'selected' : '' ?>>
-                                <?= $country ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+             <?php if ($type != 'training'): ?>
+<div class="col-lg-3 col-md-6">
+    <select name="country" class="form-select">
+        <option value="">📍 All Locations</option>
+        <?php
+        $gcc_countries = ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Oman', 'Bahrain'];
+        foreach ($gcc_countries as $country):
+        ?>
+            <option value="<?= $country ?>" <?= ($location == $country) ? 'selected' : '' ?>>
+                <?= $country ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
+<?php endif; ?>
+
 
                 <div class="col-lg-2 col-md-6">
                     <select name="category" class="form-select">
