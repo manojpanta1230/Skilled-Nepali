@@ -35,10 +35,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("issssss", $uid, $title, $description, $salary_full, $country, $category, $image_path);
         if($stmt->execute()){
             $success = "✅ Job posted successfully (pending admin approval).";
+            $job_id = $stmt->insert_id;
 
-            // Notify admin via email
-            require 'vendor/autoload.php'; // PHPMailer
+            // Use Mail Helper
+            require_once 'mail_helper.php';
 
+            // 1. Notify Admin (Existing Logic)
             $admin_email = "pantamanoj08@gmail.com"; 
             $employer_stmt = $mysqli->prepare("SELECT name,email,company FROM users WHERE id=?");
             $employer_stmt->bind_param("i", $uid);
@@ -46,37 +48,104 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
             $employer = $employer_stmt->get_result()->fetch_assoc();
             $employer_stmt->close();
 
-            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-            try {
-                $mail->isSMTP();
-                $mail->Host = 'skillednepali.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'inquiry@skillednepali.com';
-                $mail->Password = 'adgjl@900';
-                $mail->SMTPSecure = 'ssl';
-                $mail->Port = 465;
+            $admin_subject = 'New Job Posted - Admin Approval Needed';
+            $admin_body = "
+                <p>Dear Admin,</p>
+                <p>A new job has been posted and is pending your approval:</p>
+                <ul>
+                    <li><strong>Title:</strong> {$title}</li>
+                    <li><strong>Employer:</strong> {$employer['name']} ({$employer['company']})</li>
+                    <li><strong>Category:</strong> {$category}</li>
+                    <li><strong>Country:</strong> {$country}</li>
+                    <li><strong>Salary:</strong> {$salary_full}</li>
+                </ul>
+                <p>Please log in to the admin panel to review and approve the job posting.</p>
+                <p>Best regards,<br>Job Portal System</p>
+            ";
+            send_mail($admin_email, $admin_subject, $admin_body);
 
-                $mail->setFrom('inquiry@skillednepali.com', 'Job Portal');
-                $mail->addAddress($admin_email, 'Admin');
-                $mail->isHTML(true);
-                $mail->Subject = 'New Job Posted - Admin Approval Needed';
-                $mail->Body = "
-                    <p>Dear Admin,</p>
-                    <p>A new job has been posted and is pending your approval:</p>
-                    <ul>
-                        <li><strong>Title:</strong> {$title}</li>
-                        <li><strong>Employer:</strong> {$employer['name']} ({$employer['company']})</li>
-                        <li><strong>Category:</strong> {$category}</li>
-                        <li><strong>Country:</strong> {$country}</li>
-                        <li><strong>Salary:</strong> {$salary}</li>
-                    </ul>
-                    <p>Please log in to the admin panel to review and approve the job posting.</p>
-                    <p>Best regards,<br>Job Portal System</p>
+            // 2. Thank You Email to Employer
+            // Check if this is their first job
+            $check_first_stmt = $mysqli->prepare("SELECT COUNT(*) as job_count FROM jobs WHERE employer_id = ?");
+            $check_first_stmt->bind_param("i", $uid);
+            $check_first_stmt->execute();
+            $job_count_res = $check_first_stmt->get_result()->fetch_assoc();
+            $check_first_stmt->close();
+
+            if ($job_count_res['job_count'] <= 1) { // Current job is already in DB
+                $employer_subject = "Welcome to Skilled Nepali - Your First Vacancy Posted!";
+                $employer_body = "
+                    <div style='font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; color: #333; max-width: 600px;'>
+                        <p>Dear <strong>{$employer['name']}</strong>,</p>
+                        <p>Thank you for registering your company on <strong>SkilledNepali.com</strong> and posting your first vacancy.</p>
+                        <p>SkilledNepali is a new platform designed only for GCC employers, where Nepalese jobseekers in Nepal or within GCC can register and apply directly.</p>
+                        <p> <strong>SkilledNepali</strong> is powered by <strong>SSK HR Services</strong> to make hiring easy for GCC employers.</p>
+                        
+                        <p><strong>What you get as a registered employer:</strong></p>
+                        <ul style='list-style-type: none; padding-left: 0;'>
+                            <li>i) Direct access to Nepalese jobseekers (Nepal + GCC) </li>
+                            <li>ii) Job visibility and direct applications </li>
+                            <li>iii) Support to source suitable candidates for any job category </li>
+                            <li>iv) Dedicated Account Manager for smooth coordination </li>
+                        </ul>
+
+                        <p><strong>Next step (to speed up hiring):</strong></p>
+                        <p>Please share your salary range, joining timeline, and required experience (if not mentioned in the Job Post), and our team will start supporting you immediately.</p>
+                        
+                        <div style='margin-top: 20px; padding: 15px; border-left: 4px solid #00A098; background-color: #f9f9f9;'>
+                            <p style='margin: 0;'>📲 : <strong>+974 50077249</strong></p>
+                            <p style='margin: 0;'>🌐 : <a href='https://SkilledNepali.com' style='color: #00A098; text-decoration: none;'>SkilledNepali.com</a></p>
+                        </div>
+
+                        <p style='margin-top: 30px;'>
+                            Warm regards,<br>
+                            <strong>SkilledNepali.com – Empowering Workforce</strong><br>
+                            <small>Powered by SSK HR Services – Qatar</small>
+                        </p>
+                    </div>
                 ";
-                $mail->send();
-            } catch (Exception $e) {
-                error_log("Mailer Error: " . $mail->ErrorInfo);
+            } else {
+                $employer_subject = "Job Posting Received - Skilled Nepali";
+                $employer_body = "
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                        <h2 style='color: #00A098;'>Thank You, {$employer['name']}!</h2>
+                        <p>We've received your job posting for <strong>'{$title}'</strong>.</p>
+                        <p>Our team will review your post shortly. Once approved, it will be visible to potential candidates.</p>
+                        <p>Best regards,<br>Skilled Nepali Team</p>
+                    </div>
+                ";
             }
+            send_mail($employer['email'], $employer_subject, $employer_body);
+
+            // 3. Notify Job Seekers about new vacancy
+            // We match based on category for better relevance
+            $seeker_stmt = $mysqli->prepare("SELECT name, email FROM users WHERE role='jobseeker' AND status='active'");
+            $seeker_stmt->execute();
+            $seekers = $seeker_stmt->get_result();
+            
+            $vacancy_subject = "New Job Opportunity: {$title} in {$country}";
+            while ($seeker = $seekers->fetch_assoc()) {
+                $vacancy_body = "
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                        <h2 style='color: #00A098;'>Hello {$seeker['name']},</h2>
+                        <p>A new job vacancy that might interest you has just been posted on Skilled Nepali!</p>
+                        <hr>
+                        <p><strong>Job Title:</strong> {$title}</p>
+                        <p><strong>Category:</strong> {$category}</p>
+                        <p><strong>Country:</strong> {$country}</p>
+                        <p><strong>Salary:</strong> {$salary_full}</p>
+                        <hr>
+                        <p>Check out the full details and apply now to take the next step in your career.</p>
+                        <p style='margin-top: 20px;'>
+                            <a href='http://skillednepali.com/job_details.php?id={$job_id}' style='background-color: #00A098; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>View Job Details</a>
+                        </p>
+                        <br>
+                        <p>Best regards,<br>Skilled Nepali Team</p>
+                    </div>
+                ";
+                send_mail($seeker['email'], $vacancy_subject, $vacancy_body);
+            }
+            $seeker_stmt->close();
 
         } else {
             $error = "Database error: ".$mysqli->error;

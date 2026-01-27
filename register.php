@@ -144,9 +144,53 @@ if ($role === 'jobseeker') {
         );
 
         if ($stmt->execute()) {
-            $success = "✅ Registration successful! Redirecting to login page ...";
+            $success = "Registration successful! Redirecting to login page ...";
+            
+            // Send Welcome Email
+            require_once 'mail_helper.php';
+            $first_name = explode(' ', trim($name))[0];
+            $subject = "Welcome to SkilledNepali  Your GCC Career Journey Starts Here!";
+            $body = "
+                <div style='font-family: Arial, sans-serif; line-height: 1.8; color: #333; max-width: 600px;'>
+                    <p>Dear <strong>{$first_name}</strong>,</p>
+                    <p>Thank you for registering on <strong>SkilledNepali – Empowering Workforce</strong>.</p>
+                    <p>We’re excited to welcome you to a platform built only for Nepalese job seekers who want to grow their careers in the GCC (Qatar, UAE, Saudi Arabia, Kuwait, Oman, Bahrain).</p>
+                    
+                    <p><strong> What happens next?</strong></p>
+                    <p>Now that your registration is complete, here are your next steps:</p>
+                    <ol>
+                        <li><strong>Complete your profile (100%)</strong><br>Add your work experience, skills, education, and preferred job role.</li>
+                        <li><strong>Upload your updated CV</strong><br>A strong CV increases your chance of getting shortlisted faster.</li>
+                        <li><strong>Add your preferred GCC country & job category</strong><br>So employers can find you easily.</li>
+                        <li><strong>Stay active & apply to vacancies</strong><br>New jobs are posted regularly—keep checking and applying.</li>
+                    </ol>
+ 
+                    <p><strong> Why SkilledNepali?</strong></p>
+                    <p>With SkilledNepali, you get:</p>
+                    <ul>
+                        <li>Direct visibility to GCC employers </li>
+                        <li>Verified job opportunities </li>
+                        <li>Faster shortlisting support </li>
+                        <li>Career-focused platform for Nepalese talent only </li>
+                    </ul>
+ 
+                    <p style='background-color: #f0fdfa; padding: 10px; border-left: 4px solid #00A098;'>
+                        📌 <strong>Tip:</strong> Candidates with a complete profile get more calls and interview requests.
+                    </p>
+
+                    <p>Welcome again, and all the best for your GCC career journey!</p>
+                    
+                    <p style='margin-top: 30px;'>
+                        Warm regards,<br>
+                        <strong>SkilledNepali Team</strong><br>
+                        🌐 <a href='https://www.skillednepali.com' style='color: #00A098; text-decoration: none;'>www.skillednepali.com</a>
+                    </p>
+                </div>
+            ";
+            send_mail($email, $subject, $body);
+
             $_POST = [];
-            echo '<meta http-equiv="refresh" content="3;url=login.php">';
+            // Redirect removed in favor of JS toast redirect
         } else {
             $errors[] = "Database error: " . $mysqli->error;
         }
@@ -159,15 +203,60 @@ if ($role === 'jobseeker') {
                 // Employer / Training Center
                 $stmt = $mysqli->prepare("
                     INSERT INTO users 
-                    (name,email,password,role,company,designation,image,status) 
-                    VALUES (?,?,?,?,?,?,?, 'active')
+                    (name,email,password,role,company,designation,image,status,country) 
+                    VALUES (?,?,?,?,?,?,?, 'active', ?)
                 ");
-                $stmt->bind_param("sssssss", $name, $email, $hash, $role, $company, $designation, $imagePath);
+                $stmt->bind_param("ssssssss", $name, $email, $hash, $role, $company, $designation, $imagePath, $country);
 
                 if ($stmt->execute()) {
-                    $success = "✅ Registration successful! You can now log in and post jobs or training programs.";
+                    $success = "Registration successful! You can now log in.";
+
+                    // Send Employer Welcome Email
+                    require_once 'mail_helper.php';
+                    $receiver_name = !empty($company) ? $company : $name;
+                    $subject = "Welcome to SkilledNepali – Hiring Support for GCC Employers";
+                    $body = "
+                        <div style='font-family: Arial, sans-serif; line-height: 1.8; color: #333; max-width: 600px;'>
+                            <p>Dear <strong>{$receiver_name}</strong>,</p>
+                            <p>Thank you for registering on <strong>SkilledNepali.com</strong>.</p>
+                            <p>Welcome to <strong>SkilledNepali – Empowering Workforce</strong>, a new platform created to connect GCC employers with Nepalese job seekers across all industries and job categories.</p>
+                            
+                            <p>Since SkilledNepali is new in the market, our candidate pool is growing every day. However, we want to assure you that your hiring requirements can still be supported quickly through our recruitment network.</p>
+                            
+                            <p><strong> How we can support your hiring</strong></p>
+                            <p>As a registered employer, you can:</p>
+                            <ol>
+                                <li><strong>Post your job vacancies</strong><br>Share your job details (position, quantity, salary, duty hours, joining timeline) and start receiving applications.</li>
+                                <li><strong>Request candidate sourcing support</strong><br>If suitable profiles are not immediately available on the platform, we can still arrange candidates through our sourcing system.</li>
+                                <li><strong>Access trained manpower through our partners</strong><br>We work with professional sourcing and training partners in Nepal, including training centers that can provide trained candidates based on your specific requirements.</li>
+                            </ol>
+ 
+                            <p><strong> Why employers choose SkilledNepali</strong></p>
+                            <ul>
+                                <li>Nepal-focused recruitment support for GCC </li>
+                                <li>Platform + sourcing network combined </li>
+                                <li>Option for trained manpower as per job requirement </li>
+                                <li>Faster shortlisting and deployment guidance </li>
+                            </ul>
+
+                            <p style='background-color: #f9f9f9; padding: 15px; border-left: 4px solid #00A098;'>
+                                📲 To share your current manpower requirements, please send details via <strong>WhatsApp at +974 50077249</strong> and our team will assist you immediately.
+                            </p>
+
+                            <p style='margin-top: 30px;'>
+                                Warm regards,<br>
+                                <strong>SkilledNepali Team</strong><br>
+                                <small>Powered by SSK HR Services</small><br>
+                                🌐 <a href='https://www.skillednepali.com' style='color: #00A098; text-decoration: none;'>www.skillednepali.com</a><br>
+                                📩 Email: <a href='mailto:support@skillednepali.com' style='color: #00A098; text-decoration: none;'>support@skillednepali.com</a><br>
+                                📞 WhatsApp: +974 50077249
+                            </p>
+                        </div>
+                    ";
+                    send_mail($email, $subject, $body);
+
                     $_POST = [];
-                    echo '<meta http-equiv="refresh" content="3;url=login.php">';
+                    // Redirect removed in favor of JS toast redirect
                
                 } else {
                     $errors[] = "Database error: " . $mysqli->error;
@@ -590,6 +679,41 @@ if ($role === 'jobseeker') {
                 margin-right: 10px;
             }
         }
+
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        .toast-msg {
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 10px;
+            min-width: 300px;
+        }
+
+        .toast-msg.show {
+            transform: translateX(0);
+        }
+
+        .toast-msg i {
+            font-size: 20px;
+        }
+
+        .toast-msg .toast-content {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -602,6 +726,8 @@ if ($role === 'jobseeker') {
                 <h3>Create Account</h3>
                 <p class="subtitle">Join our job portal community</p>
             </div>
+            
+            <div class="toast-container" id="toastContainer"></div>
             
             <?php if ($errors): ?>
                 <div class="alert alert-danger">
@@ -636,11 +762,38 @@ if ($role === 'jobseeker') {
                         <input name="password" type="password" id="password" class="form-control" placeholder="Create a password" required>
                     </div>
                 </div>
+
+                <div class="field-group">
+                    <label for="country">Country</label>
+                    <div class="form-group">
+                        <select name="country" id="country" class="form-control" required>
+                            <option value="">Select Country</option>
+                            <option value="Nepal" <?= (($_POST['country'] ?? '') === 'Nepal') ? 'selected' : '' ?>>Nepal</option>
+                            <option value="India" <?= (($_POST['country'] ?? '') === 'India') ? 'selected' : '' ?>>India</option>
+                            <option value="Bangladesh" <?= (($_POST['country'] ?? '') === 'Bangladesh') ? 'selected' : '' ?>>Bangladesh</option>
+                            <option value="Pakistan" <?= (($_POST['country'] ?? '') === 'Pakistan') ? 'selected' : '' ?>>Pakistan</option>
+                            <option value="Sri Lanka" <?= (($_POST['country'] ?? '') === 'Sri Lanka') ? 'selected' : '' ?>>Sri Lanka</option>
+                            <option value="Afghanistan" <?= (($_POST['country'] ?? '') === 'Afghanistan') ? 'selected' : '' ?>>Afghanistan</option>
+                            <option value="Bhutan" <?= (($_POST['country'] ?? '') === 'Bhutan') ? 'selected' : '' ?>>Bhutan</option>
+                            <option value="Maldives" <?= (($_POST['country'] ?? '') === 'Maldives') ? 'selected' : '' ?>>Maldives</option>
+                            
+                            <!-- GCC Countries -->
+                            <optgroup label="GCC Countries">
+                                <option value="Saudi Arabia" <?= (($_POST['country'] ?? '') === 'Saudi Arabia') ? 'selected' : '' ?>>Saudi Arabia</option>
+                                <option value="UAE" <?= (($_POST['country'] ?? '') === 'UAE') ? 'selected' : '' ?>>United Arab Emirates (UAE)</option>
+                                <option value="Qatar" <?= (($_POST['country'] ?? '') === 'Qatar') ? 'selected' : '' ?>>Qatar</option>
+                                <option value="Kuwait" <?= (($_POST['country'] ?? '') === 'Kuwait') ? 'selected' : '' ?>>Kuwait</option>
+                                <option value="Bahrain" <?= (($_POST['country'] ?? '') === 'Bahrain') ? 'selected' : '' ?>>Bahrain</option>
+                                <option value="Oman" <?= (($_POST['country'] ?? '') === 'Oman') ? 'selected' : '' ?>>Oman</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
                 
                 <div class="field-group">
                     <label>Select Your Role</label>
                     <div class="role-options">
-                        <div class="role-option <?= (($_POST['role'] ?? '') === 'jobseeker') ? 'selected' : '' ?>" onclick="selectRole('jobseeker')">
+                        <div class="role-option <?= (($_POST['role'] ?? '') === 'jobseeker') ? 'selected' : '' ?>" onclick="selectRole('jobseeker', this)">
                             <div class="role-icon">
                                 <i class="fas fa-user-graduate"></i>
                             </div>
@@ -650,7 +803,7 @@ if ($role === 'jobseeker') {
                             </div>
                         </div>
                         
-                        <div class="role-option <?= (($_POST['role'] ?? '') === 'employer') ? 'selected' : '' ?>" onclick="selectRole('employer')">
+                        <div class="role-option <?= (($_POST['role'] ?? '') === 'employer') ? 'selected' : '' ?>" onclick="selectRole('employer', this)">
                             <div class="role-icon">
                                 <i class="fas fa-briefcase"></i>
                             </div>
@@ -660,7 +813,7 @@ if ($role === 'jobseeker') {
                             </div>
                         </div>
                         
-                        <div class="role-option <?= (($_POST['role'] ?? '') === 'training_center') ? 'selected' : '' ?>" onclick="selectRole('training_center')">
+                        <div class="role-option <?= (($_POST['role'] ?? '') === 'training_center') ? 'selected' : '' ?>" onclick="selectRole('training_center', this)">
                             <div class="role-icon">
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
@@ -790,35 +943,6 @@ sort($jobs, SORT_STRING | SORT_FLAG_CASE);
                 <textarea name="past_experience" id="past_experience" class="form-control" placeholder="Describe your past work experience"><?= htmlspecialchars($_POST['past_experience'] ?? '') ?></textarea>
             </div>
         </div>
-        <div class="field-group">
-    <label for="country">Country</label>
-    <div class="form-group">
-        <select name="country" id="country" class="form-control" required>
-            <option value="">Select Country</option>
-            <option value="Nepal" <?= (($_POST['country'] ?? '') === 'Nepal') ? 'selected' : '' ?>>Nepal</option>
-            <option value="India" <?= (($_POST['country'] ?? '') === 'India') ? 'selected' : '' ?>>India</option>
-            <option value="Bangladesh" <?= (($_POST['country'] ?? '') === 'Bangladesh') ? 'selected' : '' ?>>Bangladesh</option>
-            <option value="Pakistan" <?= (($_POST['country'] ?? '') === 'Pakistan') ? 'selected' : '' ?>>Pakistan</option>
-            <option value="Sri Lanka" <?= (($_POST['country'] ?? '') === 'Sri Lanka') ? 'selected' : '' ?>>Sri Lanka</option>
-            <option value="Afghanistan" <?= (($_POST['country'] ?? '') === 'Afghanistan') ? 'selected' : '' ?>>Afghanistan</option>
-            <option value="Bhutan" <?= (($_POST['country'] ?? '') === 'Bhutan') ? 'selected' : '' ?>>Bhutan</option>
-            <option value="Maldives" <?= (($_POST['country'] ?? '') === 'Maldives') ? 'selected' : '' ?>>Maldives</option>
-            
-            <!-- GCC Countries -->
-            <optgroup label="GCC Countries">
-                <option value="Saudi Arabia" <?= (($_POST['country'] ?? '') === 'Saudi Arabia') ? 'selected' : '' ?>>Saudi Arabia</option>
-                <option value="UAE" <?= (($_POST['country'] ?? '') === 'UAE') ? 'selected' : '' ?>>United Arab Emirates (UAE)</option>
-                <option value="Qatar" <?= (($_POST['country'] ?? '') === 'Qatar') ? 'selected' : '' ?>>Qatar</option>
-                <option value="Kuwait" <?= (($_POST['country'] ?? '') === 'Kuwait') ? 'selected' : '' ?>>Kuwait</option>
-                <option value="Bahrain" <?= (($_POST['country'] ?? '') === 'Bahrain') ? 'selected' : '' ?>>Bahrain</option>
-                <option value="Oman" <?= (($_POST['country'] ?? '') === 'Oman') ? 'selected' : '' ?>>Oman</option>
-            </optgroup>
-            
-            <!-- Other Popular Destinations -->
-        
-        </select>
-    </div>
-</div>
 
         <div class="field-group">
             <label for="cv">Upload CV/Resume (PDF, DOC, DOCX)</label>
@@ -860,7 +984,7 @@ sort($jobs, SORT_STRING | SORT_FLAG_CASE);
 
 
     <script>
-        function selectRole(role) {
+        function selectRole(role, element) {
             // Update hidden input
             document.getElementById('roleSelect').value = role;
             
@@ -868,7 +992,7 @@ sort($jobs, SORT_STRING | SORT_FLAG_CASE);
             document.querySelectorAll('.role-option').forEach(option => {
                 option.classList.remove('selected');
             });
-            event.currentTarget.classList.add('selected');
+            if (element) element.classList.add('selected');
             
             // Toggle fields based on role
             toggleFields();
@@ -966,6 +1090,43 @@ document.getElementById('application_for').addEventListener('change', function (
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <div class="toast-content">
+                    <div style="font-weight: 600;">Success!</div>
+                    <div style="font-size: 14px; opacity: 0.9;">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            // Force reflow
+            toast.offsetHeight;
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        }
+
+        <?php if ($success): ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                showToast("<?= str_replace('✅ ', '', addslashes($success)) ?>");
+                setTimeout(() => {
+                    window.location.href = 'login.php';
+                }, 3500);
+            });
+        <?php endif; ?>
+    </script>
 </body>
 </html>
 
