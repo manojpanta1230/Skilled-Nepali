@@ -34,55 +34,105 @@ if (!$job) {
     exit;
 }
 
+$errors = [];
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name    = $mysqli->real_escape_string(trim($_POST['name']));
-    $email   = $mysqli->real_escape_string(trim($_POST['email']));
-$country_code = $mysqli->real_escape_string($_POST['country_code']);
-$phone_number = $mysqli->real_escape_string(trim($_POST['phone']));
-$phone = $country_code . ' ' . $phone_number;
-    $address = $mysqli->real_escape_string(trim($_POST['address']));
-    $notes   = $mysqli->real_escape_string(trim($_POST['notes'] ?? ''));
+    $name_raw = trim($_POST['name'] ?? '');
+    $email_raw = trim($_POST['email'] ?? '');
+    $country_code_raw = trim($_POST['country_code'] ?? '');
+    $phone_number_raw = trim($_POST['phone'] ?? '');
+    $address_raw = trim($_POST['address'] ?? '');
+    $notes_raw = trim($_POST['notes'] ?? '');
 
-    // Ensure upload directories exist
-    $resume_dir = 'uploads/resumes/';
-    $photo_dir  = 'uploads/photos/';
-    if (!is_dir($resume_dir)) mkdir($resume_dir, 0755, true);
-    if (!is_dir($photo_dir)) mkdir($photo_dir, 0755, true);
+    if ($name_raw === '' || !preg_match('/^[A-Za-z\s]+$/', $name_raw)) {
+        $errors[] = 'Please enter a valid full name (letters and spaces only).';
+    }
+    if (!filter_var($email_raw, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Please enter a valid email address.';
+    }
+    if ($country_code_raw === '') {
+        $errors[] = 'Please select a country code.';
+    }
+    if ($phone_number_raw === '' || !preg_match('/^\d{6,15}$/', $phone_number_raw)) {
+        $errors[] = 'Please enter a valid phone number (6-15 digits).';
+    }
+    if ($address_raw === '') {
+        $errors[] = 'Please enter your address.';
+    }
 
-    // Resume upload
-    $resume_path = null;
-    if (!empty($_FILES['resume']['name'])) {
+    $maxFileSize = 5 * 1024 * 1024; // 5MB
+    $allowedResume = ['pdf', 'doc', 'docx'];
+    $allowedPhoto = ['jpg', 'jpeg', 'png'];
+
+    if (empty($_FILES['resume']['name']) || $_FILES['resume']['error'] !== UPLOAD_ERR_OK) {
+        $errors[] = 'Please upload a valid resume file.';
+    } else {
         $resume_ext = strtolower(pathinfo($_FILES['resume']['name'], PATHINFO_EXTENSION));
-        $allowed = ['pdf', 'doc', 'docx'];
-        if (in_array($resume_ext, $allowed)) {
+        if (!in_array($resume_ext, $allowedResume, true)) {
+            $errors[] = 'Resume must be a PDF, DOC, or DOCX file.';
+        }
+        if ($_FILES['resume']['size'] > $maxFileSize) {
+            $errors[] = 'Resume file size must be 5MB or less.';
+        }
+    }
+
+    if (!empty($_FILES['photo']['name'])) {
+        if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            $errors[] = 'Photo upload failed. Please try again.';
+        } else {
+            $photo_ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+            if (!in_array($photo_ext, $allowedPhoto, true)) {
+                $errors[] = 'Photo must be JPG, JPEG, or PNG.';
+            }
+            if ($_FILES['photo']['size'] > $maxFileSize) {
+                $errors[] = 'Photo file size must be 5MB or less.';
+            }
+        }
+    }
+
+    $name    = $mysqli->real_escape_string($name_raw);
+    $email   = $mysqli->real_escape_string($email_raw);
+    $country_code = $mysqli->real_escape_string($country_code_raw);
+    $phone_number = $mysqli->real_escape_string($phone_number_raw);
+    $phone = $country_code . ' ' . $phone_number;
+    $address = $mysqli->real_escape_string($address_raw);
+    $notes   = $mysqli->real_escape_string($notes_raw);
+
+    if (empty($errors)) {
+        // Ensure upload directories exist
+        $resume_dir = 'uploads/resumes/';
+        $photo_dir  = 'uploads/photos/';
+        if (!is_dir($resume_dir)) mkdir($resume_dir, 0755, true);
+        if (!is_dir($photo_dir)) mkdir($photo_dir, 0755, true);
+
+        // Resume upload
+        $resume_path = null;
+        if (!empty($_FILES['resume']['name'])) {
+            $resume_ext = strtolower(pathinfo($_FILES['resume']['name'], PATHINFO_EXTENSION));
             $resume_filename = uniqid('resume_') . '.' . $resume_ext;
             $resume_path = $resume_dir . $resume_filename;
             move_uploaded_file($_FILES['resume']['tmp_name'], $resume_path);
         }
-    }
 
-    // Photo upload (optional)
-    $photo_path = null;
-    if (!empty($_FILES['photo']['name'])) {
-        $photo_ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
-        $allowed_photo = ['jpg', 'jpeg', 'png'];
-        if (in_array($photo_ext, $allowed_photo)) {
+        // Photo upload (optional)
+        $photo_path = null;
+        if (!empty($_FILES['photo']['name'])) {
+            $photo_ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
             $photo_filename = uniqid('photo_') . '.' . $photo_ext;
             $photo_path = $photo_dir . $photo_filename;
             move_uploaded_file($_FILES['photo']['tmp_name'], $photo_path);
         }
-    }
 
-    // Insert application including address
-    $stmt = $mysqli->prepare("
-        INSERT INTO applications 
-        (job_id, user_id, name, email, phone, address, resume, photo, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-    $stmt->bind_param("iisssssss", $job_id, $_SESSION['user_id'], $name, $email, $phone, $address, $resume_path, $photo_path, $notes);
+        // Insert application including address
+        $stmt = $mysqli->prepare("
+            INSERT INTO applications 
+            (job_id, user_id, name, email, phone, address, resume, photo, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+        $stmt->bind_param("iisssssss", $job_id, $_SESSION['user_id'], $name, $email, $phone, $address, $resume_path, $photo_path, $notes);
 
-    if ($stmt->execute()) {
+        if ($stmt->execute()) {
         echo '<div class="alert alert-success text-center mt-4">
                 ✅ Your application has been submitted successfully!<br>
                 ' . ($resume_path ? '<a href="'.$resume_path.'" target="_blank">View Uploaded Resume</a>' : '') . '<br>
@@ -137,16 +187,27 @@ $mail->addAddress($admin_email, 'Admin'); // admin
             error_log("Mailer Error: " . $mail->ErrorInfo);
         }
 
-    } else {
-        echo '<div class="alert alert-danger text-center mt-4">
-                ❌ Failed to submit application. Please try again later.
-              </div>';
+        } else {
+            echo '<div class="alert alert-danger text-center mt-4">
+                    ❌ Failed to submit application. Please try again later.
+                  </div>';
+        }
     }
 }
 ?>
 
 <div class="container mt-5 mb-5">
     <h3 class="text-center text-primary mb-4">Apply for: <?= htmlspecialchars($job['title']) ?></h3>
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                <?php foreach ($errors as $error): ?>
+                    <li><?= htmlspecialchars($error) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data" class="p-4 shadow-lg bg-white rounded-3">
         <div class="row g-3">
