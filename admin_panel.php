@@ -103,6 +103,28 @@ if (isset($_POST['update_course_limit'])) {
         $mysqli->query("DELETE FROM jobs WHERE id=" . intval($_GET['decline_job']));
     }
 
+    // Handle job editing by admin
+    if (isset($_POST['admin_edit_job'])) {
+        $job_id = intval($_POST['job_id']);
+        $title = trim($_POST['title']);
+        $description = trim($_POST['description']);
+        $salary = trim($_POST['salary']);
+        $country = trim($_POST['country']);
+        $category = trim($_POST['category']);
+        $status = trim($_POST['status']);
+
+        $stmt = $mysqli->prepare("UPDATE jobs SET title=?, description=?, salary=?, country=?, category=?, status=? WHERE id=?");
+        $stmt->bind_param("ssssssi", $title, $description, $salary, $country, $category, $status, $job_id);
+        if ($stmt->execute()) {
+            $_SESSION['success_msg'] = "✅ Job updated successfully!";
+        } else {
+            $_SESSION['error_msg'] = "❌ Failed to update job.";
+        }
+        $stmt->close();
+        header("Location: admin_panel.php?tab=jobs");
+        exit();
+    }
+
     // Courses
     if (isset($_GET['approve_course'])) {
         $course_id = intval($_GET['approve_course']);
@@ -188,6 +210,32 @@ if (isset($_POST['update_course_limit'])) {
         } else {
             echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>❌ Invalid role selected.<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
         }
+    }
+
+    // Handle user editing
+    if (isset($_POST['admin_edit_user'])) {
+        $user_id = intval($_POST['user_id']);
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $company = trim($_POST['company']);
+        $designation = trim($_POST['designation']);
+        $country = trim($_POST['country']);
+        $role = trim($_POST['role']);
+        $status = trim($_POST['status']);
+        $application_for = trim($_POST['application_for'] ?? '');
+        $past_experience = trim($_POST['past_experience'] ?? '');
+        $applicant_type = trim($_POST['applicant_type'] ?? '');
+
+        $stmt = $mysqli->prepare("UPDATE users SET name=?, email=?, company=?, designation=?, country=?, role=?, status=?, application_for=?, past_experience=?, applicant_type=? WHERE id=?");
+        $stmt->bind_param("ssssssssssi", $name, $email, $company, $designation, $country, $role, $status, $application_for, $past_experience, $applicant_type, $user_id);
+        if ($stmt->execute()) {
+            $_SESSION['success_msg'] = "✅ User details updated successfully!";
+        } else {
+            $_SESSION['error_msg'] = "❌ Failed to update user details.";
+        }
+        $stmt->close();
+        header("Location: admin_panel.php?tab=users");
+        exit();
     }
 
     // At the top of your PHP file, handle deletion
@@ -974,6 +1022,23 @@ if (isset($_POST['update_course_limit'])) {
                     </div>
                 </div>
 
+                <!-- Success/Error Messages -->
+                <?php if(isset($_SESSION['success_msg'])): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i><?= htmlspecialchars($_SESSION['success_msg']) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <?php unset($_SESSION['success_msg']); ?>
+                <?php endif; ?>
+                
+                <?php if(isset($_SESSION['error_msg'])): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($_SESSION['error_msg']) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <?php unset($_SESSION['error_msg']); ?>
+                <?php endif; ?>
+
                 <!-- Content based on active tab -->
                 <?php if($active_tab == 'users'): ?>
         
@@ -1073,11 +1138,6 @@ if (isset($_POST['update_course_limit'])) {
                         <!-- Tab Navigation -->
                         <nav>
                             <div class="nav nav-tabs border-bottom-0 px-3 pt-3" id="nav-tab" role="tablist">
-                                <button class="nav-link active" id="nav-all-tab" data-bs-toggle="tab" data-bs-target="#nav-all" type="button" role="tab">
-                                    All Users
-                                    <span class="badge bg-secondary ms-1"><?= $stats['approved_users'] ?></span>
-                                </button>
-                                
                                 <?php 
                                 // Get counts for each role
                                 $jobseekers_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='jobseeker'")->fetch_assoc()['count'];
@@ -1086,7 +1146,7 @@ if (isset($_POST['update_course_limit'])) {
                                 $admins_count = $mysqli->query("SELECT COUNT(*) as count FROM users WHERE status='active' AND role='admin'")->fetch_assoc()['count'];
                                 ?>
                                 
-                                <button class="nav-link" id="nav-jobseekers-tab" data-bs-toggle="tab" data-bs-target="#nav-jobseekers" type="button" role="tab">
+                                <button class="nav-link active" id="nav-jobseekers-tab" data-bs-toggle="tab" data-bs-target="#nav-jobseekers" type="button" role="tab">
                                     <i class="fas fa-user-graduate me-1"></i> Job Seekers
                                     <span class="badge bg-primary ms-1"><?= $jobseekers_count ?></span>
                                 </button>
@@ -1110,81 +1170,8 @@ if (isset($_POST['update_course_limit'])) {
 
                         <!-- Tab Content -->
                         <div class="tab-content p-3" id="nav-tabContent">
-                            <!-- All Users Tab -->
-                            <div class="tab-pane fade show active" id="nav-all" role="tabpanel">
-                                <?php 
-                                // Reset approved users query
-                                $users_approved = $mysqli->query("SELECT * FROM users WHERE status='active' ORDER BY role, name");
-                                
-                                if ($users_approved->num_rows > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-modern">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Email</th>
-                                                <th>Current Role</th>
-                                                <th>Company</th>
-                                                <th>Change Role</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php $i=1; while($u=$users_approved->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><strong><?= $i++ ?></strong></td>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="bg-success rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                            <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
-                                                            <small class="text-muted">ID: <?= $u['id'] ?></small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['email']) ?></td>
-                                                <td>
-                                                    <?php 
-                                                    $color = $role_badge_color[$u['role']] ?? 'secondary';
-                                                    ?>
-                                                    <span class="badge-modern bg-<?= $color ?>"><?= htmlspecialchars($u['role']) ?></span>
-                                                </td>
-                                                <td><?= htmlspecialchars($u['company']) ?></td>
-                                                <td>
-                                                    <form method="post" class="d-flex gap-2 align-items-center">
-                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
-                                                            <option value="">Select Role</option>
-                                                            <option value="jobseeker" <?= $u['role']=='jobseeker'?'selected':''; ?>>Jobseeker</option>
-                                                            <option value="employer" <?= $u['role']=='employer'?'selected':''; ?>>Employer</option>
-                                                            <option value="training_center" <?= $u['role']=='training_center'?'selected':''; ?>>Training Center</option>
-                                                            <option value="admin" <?= $u['role']=='admin'?'selected':''; ?>>Admin</option>
-                                                        </select>
-                                                        <button name="update_role" class="btn btn-modern btn-primary btn-sm">
-                                                            <i class="fas fa-save"></i>
-                                                        </button>
-                                                        <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <?php else: ?>
-                                    <div class="empty-state">
-                                        <i class="fas fa-user-check"></i>
-                                        <p>No approved users yet</p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
                             <!-- Job Seekers Tab -->
-                            <div class="tab-pane fade" id="nav-jobseekers" role="tabpanel">
+                            <div class="tab-pane fade show active" id="nav-jobseekers" role="tabpanel">
                                 <?php 
                                 $jobseekers = $mysqli->query("SELECT * FROM users WHERE status='active' AND role='jobseeker' ORDER BY name");
                                 
@@ -1218,17 +1205,11 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><?= htmlspecialchars($u['email']) ?></td>
                                                 <td><?= htmlspecialchars($u['company']) ?></td>
                                                 <td>
-                                                    <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                    <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
-                                                            <option value="jobseeker" selected>Jobseeker</option>
-                                                            <option value="employer">Employer</option>
-                                                            <option value="training_center">Training Center</option>
-                                                            <option value="admin">Admin</option>
-                                                        </select>
-                                                        <button name="update_role" class="btn btn-modern btn-primary btn-sm">
-                                                            <i class="fas fa-save"></i>
-                                                        </button>
                                                         <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
@@ -1282,17 +1263,11 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><?= htmlspecialchars($u['email']) ?></td>
                                                 <td><?= htmlspecialchars($u['company']) ?></td>
                                                 <td>
-                                                    <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                    <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
-                                                            <option value="jobseeker">Jobseeker</option>
-                                                            <option value="employer" selected>Employer</option>
-                                                            <option value="training_center">Training Center</option>
-                                                            <option value="admin">Admin</option>
-                                                        </select>
-                                                        <button name="update_role" class="btn btn-modern btn-primary btn-sm">
-                                                            <i class="fas fa-save"></i>
-                                                        </button>
                                                         <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
@@ -1346,17 +1321,11 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><?= htmlspecialchars($u['email']) ?></td>
                                                 <td><?= htmlspecialchars($u['company']) ?></td>
                                                 <td>
-                                                    <form method="post" class="d-flex gap-2 align-items-center">
+                                                    <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                    <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <select name="new_role" class="form-select form-select-sm" style="min-width: 140px;" required>
-                                                            <option value="jobseeker">Jobseeker</option>
-                                                            <option value="employer">Employer</option>
-                                                            <option value="training_center" selected>Training Center</option>
-                                                            <option value="admin">Admin</option>
-                                                        </select>
-                                                        <button name="update_role" class="btn btn-modern btn-primary btn-sm">
-                                                            <i class="fas fa-save"></i>
-                                                        </button>
                                                         <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
@@ -1442,6 +1411,124 @@ if (isset($_POST['update_course_limit'])) {
                     </div>
                 </div>
             </div>
+            
+            <!-- Edit User Modals -->
+            <?php 
+            // Re-fetch all users for modals
+            $all_users_for_modal = $mysqli->query("SELECT * FROM users WHERE status='active' ORDER BY role, name");
+            while($user = $all_users_for_modal->fetch_assoc()): 
+            ?>
+            <div class="modal fade modern-modal" id="editUserModal<?= $user['id'] ?>" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form method="post" action="admin_panel.php?tab=users">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit User: <?= htmlspecialchars($user['name']) ?></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Full Name</label>
+                                        <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($user['name']) ?>" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Email Address</label>
+                                        <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Company/Organization</label>
+                                        <input type="text" name="company" class="form-control" value="<?= htmlspecialchars($user['company'] ?? '') ?>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Designation</label>
+                                        <input type="text" name="designation" class="form-control" value="<?= htmlspecialchars($user['designation'] ?? '') ?>">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Country</label>
+                                        <select name="country" class="form-select">
+                                            <option value="">Select Country</option>
+                                            <?php foreach(['Saudi Arabia','UAE','Kuwait','Bahrain','Qatar','Oman','Nepal','India','Pakistan'] as $c): ?>
+                                                <option value="<?= $c ?>" <?= ($user['country']==$c)?'selected':'' ?>><?= $c ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Role</label>
+                                        <select name="role" class="form-select" required>
+                                            <option value="jobseeker" <?= ($user['role']=='jobseeker')?'selected':'' ?>>Job Seeker</option>
+                                            <option value="employer" <?= ($user['role']=='employer')?'selected':'' ?>>Employer</option>
+                                            <option value="training_center" <?= ($user['role']=='training_center')?'selected':'' ?>>Training Center</option>
+                                            <option value="admin" <?= ($user['role']=='admin')?'selected':'' ?>>Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Account Status</label>
+                                    <select name="status" class="form-select" required>
+                                        <option value="active" <?= ($user['status']=='active')?'selected':'' ?>>Active</option>
+                                        <option value="pending" <?= ($user['status']=='pending')?'selected':'' ?>>Pending</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Jobseeker-specific fields -->
+                                <?php if($user['role'] == 'jobseeker'): ?>
+                                <hr class="my-3">
+                                <h6 class="text-primary mb-3"><i class="fas fa-user-graduate me-2"></i>Job Seeker Details</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Application For</label>
+                                    <input type="text" name="application_for" class="form-control" value="<?= htmlspecialchars($user['application_for'] ?? '') ?>" placeholder="e.g., Software Developer, Nurse, Engineer">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Past Experience</label>
+                                    <textarea name="past_experience" rows="3" class="form-control" placeholder="Describe your past work experience..."><?= htmlspecialchars($user['past_experience'] ?? '') ?></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Applicant Type</label>
+                                    <select name="applicant_type" class="form-select">
+                                        <option value="">Select Type</option>
+                                        <option value="Fresher" <?= ($user['applicant_type']=='Fresher')?'selected':'' ?>>Fresher</option>
+                                        <option value="Experienced" <?= ($user['applicant_type']=='Experienced')?'selected':'' ?>>Experienced</option>
+                                    </select>
+                                </div>
+                                <?php else: ?>
+                                    <input type="hidden" name="application_for" value="">
+                                    <input type="hidden" name="past_experience" value="">
+                                    <input type="hidden" name="applicant_type" value="">
+                                <?php endif; ?>
+                                
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>User ID:</strong> <?= $user['id'] ?>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" name="admin_edit_user" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endwhile; ?>
+            
                                 </div>
                 <?php elseif($active_tab == 'jobs'): ?>
                     <!-- JOBS MANAGEMENT -->
@@ -1554,6 +1641,7 @@ if (isset($_POST['update_course_limit'])) {
                                                     <th>Company</th>
                                                     <th>Posted By</th>
                                                     <th>Category</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1576,6 +1664,11 @@ if (isset($_POST['update_course_limit'])) {
                                                             <?= htmlspecialchars($j['category']) ?>
                                                         </span>
                                                     </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#adminEditJobModal<?= $j['id'] ?>">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             <?php endwhile; ?>
                                             </tbody>
@@ -1589,6 +1682,82 @@ if (isset($_POST['update_course_limit'])) {
                                     <?php endif; ?>
                                 </div>
                             </div>
+                            
+                            <!-- Edit Job Modals for Approved Jobs -->
+                            <?php 
+                            // Re-fetch jobs for modals
+                            $jobs_for_modal = $mysqli->query("SELECT j.*, u.name AS employer_name, u.company FROM jobs j JOIN users u ON j.employer_id=u.id WHERE j.status='approved'");
+                            while($job = $jobs_for_modal->fetch_assoc()): 
+                            ?>
+                            <div class="modal fade modern-modal" id="adminEditJobModal<?= $job['id'] ?>" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <form method="post" action="admin_panel.php?tab=jobs">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Job: <?= htmlspecialchars($job['title']) ?></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Job Title</label>
+                                                    <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($job['title']) ?>" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Description</label>
+                                                    <textarea name="description" rows="5" class="form-control" required><?= htmlspecialchars($job['description']) ?></textarea>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">Country</label>
+                                                        <select name="country" class="form-select" required>
+                                                            <?php foreach(['Saudi Arabia','UAE','Kuwait','Bahrain','Qatar','Oman'] as $c): ?>
+                                                                <option value="<?= $c ?>" <?= ($job['country']==$c)?'selected':'' ?>><?= $c ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">Salary</label>
+                                                        <input type="text" name="salary" class="form-control" value="<?= htmlspecialchars($job['salary'] ?? '') ?>" required>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">Category</label>
+                                                        <input type="text" name="category" class="form-control" value="<?= htmlspecialchars($job['category']) ?>" required>
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">Status</label>
+                                                        <select name="status" class="form-select" required>
+                                                            <option value="approved" <?= ($job['status']=='approved')?'selected':'' ?>>Approved</option>
+                                                            <option value="pending" <?= ($job['status']=='pending')?'selected':'' ?>>Pending</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="alert alert-info mb-0">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Posted by:</strong> <?= htmlspecialchars($job['employer_name']) ?> (<?= htmlspecialchars($job['company']) ?>)
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" name="admin_edit_job" class="btn btn-success">
+                                                    <i class="fas fa-save me-2"></i>Save Changes
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endwhile; ?>
+                            
                         </div>
                     </div>
 

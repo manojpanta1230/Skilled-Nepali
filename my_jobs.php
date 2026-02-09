@@ -13,10 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_job'])) {
     $desc    = trim($_POST['description']);
     $country = trim($_POST['country']);
     $salary  = trim($_POST['salary']);
+    $category = trim($_POST['category']);
     $status  = trim($_POST['status']);
 
-    $stmt = $mysqli->prepare("UPDATE jobs SET title=?, description=?, country=?, salary=?, status=? WHERE id=? AND employer_id=?");
-    $stmt->bind_param("sssssii", $title, $desc, $country, $salary, $status, $id, $uid);
+    $stmt = $mysqli->prepare("UPDATE jobs SET title=?, description=?, country=?, salary=?, category=?, status=? WHERE id=? AND employer_id=?");
+    $stmt->bind_param("ssssssii", $title, $desc, $country, $salary, $category, $status, $id, $uid);
     if ($stmt->execute()) {
         $toast_message = "✅ Job updated successfully!";
         $toast_class = "bg-success text-white";
@@ -79,7 +80,8 @@ $res = $mysqli->query("SELECT * FROM jobs WHERE employer_id=$uid ORDER BY id DES
                         <span class="badge <?= $r['status']=='approved'?'bg-success':'bg-warning text-dark' ?>"><?= ucfirst($r['status']) ?></span>
                     </div>
                     <p class="card-text mb-3"><?= nl2br(htmlspecialchars(substr($r['description'],0,120))) ?>...<br>
-                        <small class="text-muted"><?= htmlspecialchars($r['country'] ?? '') ?> | $<?= htmlspecialchars($r['salary'] ?? '') ?></small>
+                        <small class="text-muted"><?= htmlspecialchars($r['country'] ?? '') ?> | $<?= htmlspecialchars($r['salary'] ?? '') ?></small><br>
+                        <small class="text-muted"><i class="fas fa-tag"></i> <?= htmlspecialchars($r['category'] ?? 'N/A') ?></small>
                     </p>
                     <div class="mt-auto d-flex gap-2">
                         <button type="button" class="btn btn-primary btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#editJobModal<?= $r['id'] ?>">Edit</button>
@@ -117,6 +119,8 @@ $res = $mysqli->query("SELECT * FROM jobs WHERE employer_id=$uid ORDER BY id DES
                                 </select></div>
                             <div class="mb-3"><label class="form-label fw-bold">Salary</label>
                                 <input type="text" name="salary" class="form-control" value="<?= htmlspecialchars($r['salary'] ?? '') ?>"></div>
+                            <div class="mb-3"><label class="form-label fw-bold">Category</label>
+                                <input type="text" name="category" class="form-control" value="<?= htmlspecialchars($r['category'] ?? '') ?>" required></div>
                             <div class="mb-3"><label class="form-label fw-bold">Status</label>
                                 <select name="status" class="form-select">
                                     <option value="approved" <?= ($r['status']=='approved')?'selected':'' ?>>Approved</option>
