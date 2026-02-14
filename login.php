@@ -1,5 +1,5 @@
 <?php 
-include 'portal_header.php';
+require_once 'config.php';
 
 if (is_logged_in()) {
     $u = current_user();
@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+<?php include 'portal_header.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

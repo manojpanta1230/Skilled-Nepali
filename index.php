@@ -156,16 +156,69 @@
             </div>
         </div>
     </div>
-    <!-- About End -->
+ <?php
+    $partnerLogos = array();
+    if (isset($mysqli)) {
+        $partnerQuery = $mysqli->query("SELECT company, image FROM users WHERE role='employer' AND status='active' ORDER BY id DESC");
+        if ($partnerQuery) {
+            while ($row = $partnerQuery->fetch_assoc()) {
+                $logoPath = isset($row['image']) ? trim($row['image']) : '';
+                $logoFile = (!empty($logoPath) && file_exists(__DIR__ . '/' . $logoPath)) ? $logoPath : '';
+                if (!empty($logoFile)) {
+                    $partnerLogos[] = array(
+                        'company' => isset($row['company']) ? $row['company'] : 'Partner',
+                        'logo' => $logoFile
+                    );
+                }
+            }
+        }
+    }
 
+    if (empty($partnerLogos)) {
+        $partnerLogos = array(
+            array('company' => 'Partner', 'logo' => 'img/brand-logo.png'),
+            array('company' => 'Partner', 'logo' => 'img/Logo.png'),
+            array('company' => 'Partner', 'logo' => 'img/image.png')
+        );
+    }
 
+    // Ensure enough items for a smooth infinite loop
+    $loopLogos = $partnerLogos;
+    $minLogos = 6;
+    $i = 0;
+    while (count($loopLogos) < $minLogos) {
+        $loopLogos[] = $partnerLogos[$i % count($partnerLogos)];
+        $i++;
+    }
+    ?>
+    <div class="container-fluid py-5 bg-light" id="partners">
+        <div class="container">
+            <div class="section-title text-center mb-4 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="sub-style">
+                    <h2 class="sub-title text-primary px-3">Associated Companies</h2>
+                </div>
+                <h2 class="display-5 mb-2">Trusted by Employers & Partners</h2>
+                <p class="mb-0">Our partner network across the GCC</p>
+            </div>
 
-    <!-- Counter Facts End -->
+            <div class="logo-marquee">
+                <div class="logo-track">
+                    <?php foreach ($loopLogos as $partner): ?>
+                        <div class="logo-item">
+                            <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>">
+                        </div>
+                    <?php endforeach; ?>
+                    <!-- Duplicate set for seamless scroll -->
+                    <?php foreach ($loopLogos as $partner): ?>
+                        <div class="logo-item">
+                            <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
-
-    <!-- Services Start -->
-
-    <!-- Services End -->
 
 
 
@@ -238,7 +291,7 @@
 
 
     <!-- Countries We Offer Start -->
-
+   
 
     <div class="container-fluid country overflow-hidden py-5">
         <div class="container">
