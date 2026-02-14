@@ -1,6 +1,11 @@
 (function ($) {
     "use strict";
 
+    // Apply native lazy loading to all images
+    $(function () {
+        $("img").attr("loading", "lazy");
+    });
+
     // Spinner
     var spinner = function () {
         setTimeout(function () {

@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    <link rel="icon" type="image/x-icon" href="img/Logo.png">
   <title>Job Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
@@ -16,27 +19,51 @@
       top: 0;
       z-index: 1050;
       transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
     }
 
     .navbar-brand img {
-      height: 100px;
-      width: auto;
+      width: 300px;
+      height: auto;
       object-fit: contain;
       transition: 0.3s;
-      margin-left: -10px;
+      margin-left: 0;
     }
 
     .navbar .container-fluid {
-      padding-left: 110px;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    .navbar .container-fluid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .navbar-nav {
+      gap: 10px;
+    }
+
+    .navbar .nav-link,
+    .navbar .btn {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .navbar-brand {
+      margin-right: 20px;
     }
 
     @media (max-width: 992px) {
       .navbar-brand img {
-        height: 70px;
+        width: 200px;
+        height: auto;
         margin-left: 0;
       }
       .navbar .container-fluid {
-        padding-left: 15px;
+        padding-left: 12px;
+        padding-right: 12px;
       }
       .navbar-collapse {
         background-color: #00A098;
@@ -73,7 +100,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="index.php">
-      <img src="img/Logo.png" alt="JobPortal Logo">
+      <img src="img/image-removebg-preview.png" alt="Skilled Nepali Logo">
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
