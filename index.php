@@ -1,4 +1,41 @@
+<?php
+require_once 'config.php';
 
+// Fetch Partner Logos for top marquee
+$partnerLogos = array();
+if (isset($mysqli)) {
+    $partnerQuery = $mysqli->query("SELECT company, image FROM users WHERE role='employer' AND status='active' ORDER BY id DESC");
+    if ($partnerQuery) {
+        while ($row = $partnerQuery->fetch_assoc()) {
+            $logoPath = isset($row['image']) ? trim($row['image']) : '';
+            $logoFile = (!empty($logoPath) && file_exists(__DIR__ . '/' . $logoPath)) ? $logoPath : '';
+            if (!empty($logoFile)) {
+                $partnerLogos[] = array(
+                    'company' => isset($row['company']) ? $row['company'] : 'Partner',
+                    'logo' => $logoFile
+                );
+            }
+        }
+    }
+}
+
+if (empty($partnerLogos)) {
+    $partnerLogos = array(
+        array('company' => 'Partner', 'logo' => 'img/brand-logo.png'),
+        array('company' => 'Partner', 'logo' => 'img/Logo.png'),
+        array('company' => 'Partner', 'logo' => 'img/image.png')
+    );
+}
+
+// Ensure enough items for a smooth infinite loop
+$loopLogos = $partnerLogos;
+$minLogos = 10;
+$i = 0;
+while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
+    $loopLogos[] = $partnerLogos[$i % count($partnerLogos)];
+    $i++;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -49,6 +86,35 @@
 
     <!-- Navbar & Hero End -->
 
+    <!-- Absolute Top Partner Marquee Bar -->
+    <?php if (!empty($loopLogos)): ?>
+    <div class="top-marquee-bar border-bottom">
+        <div class="container-fluid px-4 px-lg-5">
+            <div class="marquee-content-wrapper d-flex align-items-center">
+                <!-- Stationary Bold Title -->
+        
+
+                <div class="logo-marquee-box flex-grow-1 py-2">
+                    <div class="logo-track">
+                        <?php foreach ($loopLogos as $partner): ?>
+                            <div class="logo-item px-3">
+                                <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>" title="<?= htmlspecialchars($partner['company']) ?>" loading="lazy">
+                            </div>
+                        <?php endforeach; ?>
+
+                        <!-- Duplicate logos for seamless scroll -->
+                        <?php foreach ($loopLogos as $partner): ?>
+                            <div class="logo-item px-3">
+                                <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>" title="<?= htmlspecialchars($partner['company']) ?>" loading="lazy">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <?php
     include 'component/header.php';
     ?>
@@ -62,8 +128,9 @@
                     <img src="img/slider.jpg" class="img-fluid" alt="Image">
                     <div class="carousel-caption">
                         <div class="text-center p-4" style="max-width: 900px;">
-                            <p class="text-white text-uppercase fw-bold mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.1s">Bridge between Nepali Talent & GCC Opportunity</p>
-                            <h1 class="display-1 text-capitalize text-white mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.3s"> Safe, legal GCC jobs.</h1>
+                            <h1 class="display-1 text-capitalize text-white mb-3 mb-md-4 wow fadeInUp" data-wow-delay="0.3s" style="font-size:35px">CONNECTING NEPALI TALENT WITH GCC COUNTRIES
+</h1>
+                            <p class="text-white mb-4 mb-md-5 fs-5 wow fadeInUp" data-wow-delay="0.5s">with Registered and Genuine Companies </p>
                             <p class="text-white mb-4 mb-md-5 fs-5 wow fadeInUp" data-wow-delay="0.5s">Complete career support for Nepalese job seekers in GCC countries.
                             </p>
                             <a class="btn btn-primary  rounded-pill text-white py-3 px-5 wow fadeInUp" data-wow-delay="0.7s" href="#">More Details</a>
@@ -152,68 +219,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
- <?php
-    $partnerLogos = array();
-    if (isset($mysqli)) {
-        $partnerQuery = $mysqli->query("SELECT company, image FROM users WHERE role='employer' AND status='active' ORDER BY id DESC");
-        if ($partnerQuery) {
-            while ($row = $partnerQuery->fetch_assoc()) {
-                $logoPath = isset($row['image']) ? trim($row['image']) : '';
-                $logoFile = (!empty($logoPath) && file_exists(__DIR__ . '/' . $logoPath)) ? $logoPath : '';
-                if (!empty($logoFile)) {
-                    $partnerLogos[] = array(
-                        'company' => isset($row['company']) ? $row['company'] : 'Partner',
-                        'logo' => $logoFile
-                    );
-                }
-            }
-        }
-    }
-
-    if (empty($partnerLogos)) {
-        $partnerLogos = array(
-            array('company' => 'Partner', 'logo' => 'img/brand-logo.png'),
-            array('company' => 'Partner', 'logo' => 'img/Logo.png'),
-            array('company' => 'Partner', 'logo' => 'img/image.png')
-        );
-    }
-
-    // Ensure enough items for a smooth infinite loop
-    $loopLogos = $partnerLogos;
-    $minLogos = 6;
-    $i = 0;
-    while (count($loopLogos) < $minLogos) {
-        $loopLogos[] = $partnerLogos[$i % count($partnerLogos)];
-        $i++;
-    }
-    ?>
-    <div class="container-fluid py-5 bg-light" id="partners">
-        <div class="container">
-            <div class="section-title text-center mb-4 wow fadeInUp" data-wow-delay="0.1s">
-                <div class="sub-style">
-                    <h2 class="sub-title text-primary px-3">Associated Companies</h2>
-                </div>
-                <h2 class="display-5 mb-2">Trusted by Employers & Partners</h2>
-                <p class="mb-0">Our partner network across the GCC</p>
-            </div>
-
-            <div class="logo-marquee">
-                <div class="logo-track">
-                    <?php foreach ($loopLogos as $partner): ?>
-                        <div class="logo-item">
-                            <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>">
-                        </div>
-                    <?php endforeach; ?>
-                    <!-- Duplicate set for seamless scroll -->
-                    <?php foreach ($loopLogos as $partner): ?>
-                        <div class="logo-item">
-                            <img src="<?= htmlspecialchars($partner['logo']) ?>" alt="<?= htmlspecialchars($partner['company']) ?>">
-                        </div>
-                    <?php endforeach; ?>
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 <?php 
-include 'config.php';
+require_once 'config.php';
 require_login(); 
 if(!is_jobseeker()) die("<div class='alert alert-danger'>Access Denied: Jobseekers only.</div>");
 

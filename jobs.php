@@ -669,7 +669,7 @@ body{
 
                     <div class="cost-badge">
                         <i class="fas fa-tag"></i>
-                        $<?= $course['cost'] ?>
+                        <?= $course['cost'] ?>
                     </div>
                 </div>
             </div>

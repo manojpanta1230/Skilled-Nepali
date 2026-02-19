@@ -261,6 +261,36 @@ body {
     margin: 0;
 }
 
+.info-text.truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.show-more-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    padding: 0;
+    margin-top: 8px;
+    cursor: pointer;
+    display: none; /* Hidden by default, shown via JS if needed */
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.show-more-btn i {
+    transition: transform 0.3s ease;
+}
+
+.show-more-btn.active i {
+    transform: rotate(180deg);
+}
+
+
 .experience-badge {
     display: inline-flex;
     align-items: center;
@@ -445,8 +475,14 @@ body {
                                 </div>
                                 <div class="info-content">
                                     <div class="info-label">Past Experience</div>
-                                    <div class="info-text"><?= nl2br(htmlspecialchars($user['past_experience'] ?? 'Not provided')) ?></div>
+                                    <div class="info-text-wrapper">
+                                        <div class="info-text past-exp-text truncated"><?= nl2br(htmlspecialchars($user['past_experience'] ?? 'Not provided')) ?></div>
+                                        <button class="show-more-btn" onclick="toggleDescription(this)">
+                                            <span>Show more</span> <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -467,12 +503,10 @@ body {
 function filterCards() {
     let input = document.getElementById('searchInput').value.toLowerCase();
     let cards = document.querySelectorAll('.job-card');
-    let visibleCount = 0;
     
     cards.forEach(card => {
         if (card.innerText.toLowerCase().includes(input)) {
             card.style.display = '';
-            visibleCount++;
         } else {
             card.style.display = 'none';
         }
@@ -503,6 +537,26 @@ function filterByExperience(level) {
         card.style.display = show ? '' : 'none';
     });
 }
+
+function toggleDescription(btn) {
+    const text = btn.previousElementSibling;
+    const isTruncated = text.classList.toggle('truncated');
+    btn.classList.toggle('active');
+    btn.querySelector('span').textContent = isTruncated ? 'Show more' : 'Show less';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const expTexts = document.querySelectorAll('.past-exp-text');
+    expTexts.forEach(text => {
+        // If text height is greater than it would be without truncation (approx 2 lines)
+        if (text.scrollHeight > text.clientHeight) {
+            const btn = text.nextElementSibling;
+            if (btn && btn.classList.contains('show-more-btn')) {
+                btn.style.display = 'flex';
+            }
+        }
+    });
+});
 </script>
 
 <!-- Animation JS -->
