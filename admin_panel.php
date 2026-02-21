@@ -145,14 +145,98 @@ if (isset($_POST['update_course_limit'])) {
         $mysqli->query("DELETE FROM courses WHERE id=" . intval($_GET['decline_course']));
     }
 
-    // Job delete requests
-    if (isset($_GET['approve_delete_job'])) {
-        $job_id = intval($_GET['approve_delete_job']);
-        $mysqli->query("DELETE FROM jobs WHERE id=$job_id");
+    // Handle course editing by admin
+    if (isset($_POST['admin_edit_course'])) {
+        $course_id = intval($_POST['course_id']);
+        $title = trim($_POST['title']);
+        $description = trim($_POST['description']);
+        $cost = trim($_POST['cost']);
+        $duration = trim($_POST['duration']);
+        $structure = trim($_POST['structure']);
+        $prerequisites = trim($_POST['prerequisites']);
+        $status = trim($_POST['status']);
+
+        $stmt = $mysqli->prepare("UPDATE courses SET title=?, description=?, cost=?, duration=?, structure=?, prerequisites=?, status=? WHERE id=?");
+        $stmt->bind_param("sssssssi", $title, $description, $cost, $duration, $structure, $prerequisites, $status, $course_id);
+        if ($stmt->execute()) {
+            $_SESSION['success_msg'] = "✅ Course updated successfully!";
+        } else {
+            $_SESSION['error_msg'] = "❌ Failed to update course.";
+        }
+        $stmt->close();
+        header("Location: admin_panel.php?tab=courses");
+        exit();
     }
-    if (isset($_GET['cancel_delete_job'])) {
-        $job_id = intval($_GET['cancel_delete_job']);
-        $mysqli->query("UPDATE jobs SET delete_requested=0 WHERE id=$job_id");
+
+    // Handle course deletion by admin (Transactional)
+    if (isset($_GET['admin_delete_course'])) {
+        $course_id = intval($_GET['admin_delete_course']);
+        
+        $mysqli->begin_transaction();
+        try {
+            // Delete course applications first
+            $mysqli->query("DELETE FROM course_applications WHERE course_id = $course_id");
+            // Delete the course
+            $mysqli->query("DELETE FROM courses WHERE id = $course_id");
+            
+            $mysqli->commit();
+            $_SESSION['success_msg'] = "✅ Course and associated applications deleted.";
+        } catch (Exception $e) {
+            $mysqli->rollback();
+            $_SESSION['error_msg'] = "❌ Failed to delete course.";
+        }
+        header("Location: admin_panel.php?tab=courses");
+        exit();
+    }
+
+    // Handle job deletion by admin (Transactional)
+    if (isset($_GET['admin_delete_job'])) {
+        $job_id = intval($_GET['admin_delete_job']);
+        
+        $mysqli->begin_transaction();
+        try {
+            // Delete job applications first
+            $mysqli->query("DELETE FROM applications WHERE job_id = $job_id");
+            // Delete the job
+            $mysqli->query("DELETE FROM jobs WHERE id = $job_id");
+            
+            $mysqli->commit();
+            $_SESSION['success_msg'] = "✅ Job and associated applications deleted.";
+        } catch (Exception $e) {
+            $mysqli->rollback();
+            $_SESSION['error_msg'] = "❌ Failed to delete job.";
+        }
+        header("Location: admin_panel.php?tab=jobs");
+        exit();
+    }
+
+    // Handle logo/image change by admin
+    if (isset($_POST['admin_change_logo'])) {
+        $user_id = intval($_POST['user_id']);
+        $file = $_FILES['logo'];
+        $allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+
+        if (in_array($file['type'], $allowed_types) && $file['error'] === 0) {
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $new_name = 'uploads/profile_' . $user_id . '_' . time() . '.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $new_name)) {
+                $stmt = $mysqli->prepare("UPDATE users SET image = ? WHERE id = ?");
+                $stmt->bind_param("si", $new_name, $user_id);
+                if ($stmt->execute()) {
+                    $_SESSION['success_msg'] = "✅ Logo updated successfully!";
+                } else {
+                    $_SESSION['error_msg'] = "❌ Database update failed.";
+                }
+                $stmt->close();
+            } else {
+                $_SESSION['error_msg'] = "❌ File upload failed.";
+            }
+        } else {
+            $_SESSION['error_msg'] = "❌ Invalid file type or error.";
+        }
+        header("Location: admin_panel.php?tab=users");
+        exit();
     }
 
     // ------------------------ FETCH DATA ------------------------
@@ -1251,8 +1335,14 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><strong><?= $i++ ?></strong></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <div class="bg-success rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                            <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                        <div class="me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                                            <?php if(!empty($u['image'])): ?>
+                                                                <img src="<?= $u['image'] ?>" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                                            <?php else: ?>
+                                                                <div class="bg-success rounded-circle" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                                    <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                                </div>
+                                                            <?php endif; ?>
                                                         </div>
                                                         <div>
                                                             <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
@@ -1263,15 +1353,53 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><?= htmlspecialchars($u['email']) ?></td>
                                                 <td><?= htmlspecialchars($u['company']) ?></td>
                                                 <td>
-                                                    <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
-                                                        <i class="fas fa-edit"></i> Edit
-                                                    </button>
-                                                    <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
-                                                            <i class="fas fa-trash"></i>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
+                                                            <i class="fas fa-edit"></i> Edit
                                                         </button>
-                                                    </form>
+                                                        <button type="button" class="btn btn-modern btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#changeLogoModal<?= $u['id'] ?>">
+                                                            <i class="fas fa-image"></i> Logo
+                                                        </button>
+                                                        <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                            <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                            <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Change Logo Modal -->
+                                                    <div class="modal fade modern-modal" id="changeLogoModal<?= $u['id'] ?>" tabindex="-1">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Change Logo: <?= htmlspecialchars($u['name']) ?></h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <form action="" method="POST" enctype="multipart/form-data">
+                                                                    <div class="modal-body text-center">
+                                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                                        <div class="mb-4">
+                                                                            <?php if(!empty($u['image'])): ?>
+                                                                                <img src="<?= $u['image'] ?>" class="rounded shadow-sm" style="max-width: 150px; max-height: 150px;">
+                                                                            <?php else: ?>
+                                                                                <div class="bg-light d-inline-block p-4 rounded text-muted">No Logo</div>
+                                                                            <?php endif; ?>
+                                                                        </div>
+                                                                        <div class="mb-3 text-start">
+                                                                            <label class="form-label fw-bold">Select New Logo</label>
+                                                                            <input type="file" name="logo" class="form-control" required>
+                                                                            <small class="text-muted">JPG, PNG, WEBP only.</small>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <button type="submit" name="admin_change_logo" class="btn btn-primary">Update Logo</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -1309,27 +1437,70 @@ if (isset($_POST['update_course_limit'])) {
                                                 <td><strong><?= $i++ ?></strong></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <div class="bg-info rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                            <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
-                                                            <small class="text-muted">ID: <?= $u['id'] ?></small>
-                                                        </div>
+                                                    <div class="me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                                        <?php if(!empty($u['image'])): ?>
+                                                            <img src="<?= $u['image'] ?>" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        <?php else: ?>
+                                                            <div class="bg-info rounded-circle" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                                <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium"><?= htmlspecialchars($u['name']) ?></div>
+                                                        <small class="text-muted">ID: <?= $u['id'] ?></small>
                                                     </div>
                                                 </td>
                                                 <td><?= htmlspecialchars($u['email']) ?></td>
                                                 <td><?= htmlspecialchars($u['company']) ?></td>
                                                 <td>
-                                                    <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
-                                                        <i class="fas fa-edit"></i> Edit
-                                                    </button>
-                                                    <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                                        <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
-                                                            <i class="fas fa-trash"></i>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>">
+                                                            <i class="fas fa-edit"></i> Edit
                                                         </button>
-                                                    </form>
+                                                        <button type="button" class="btn btn-modern btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#changeLogoModalTC<?= $u['id'] ?>">
+                                                            <i class="fas fa-image"></i> Logo
+                                                        </button>
+                                                        <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                            <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                            <button name="delete_user" class="btn btn-modern btn-danger btn-sm">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Change Logo Modal TC -->
+                                                    <div class="modal fade modern-modal" id="changeLogoModalTC<?= $u['id'] ?>" tabindex="-1">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Change Logo: <?= htmlspecialchars($u['name']) ?></h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <form action="" method="POST" enctype="multipart/form-data">
+                                                                    <div class="modal-body text-center">
+                                                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                                                        <div class="mb-4">
+                                                                            <?php if(!empty($u['image'])): ?>
+                                                                                <img src="<?= $u['image'] ?>" class="rounded shadow-sm" style="max-width: 150px; max-height: 150px;">
+                                                                            <?php else: ?>
+                                                                                <div class="bg-light d-inline-block p-4 rounded text-muted">No Logo</div>
+                                                                            <?php endif; ?>
+                                                                        </div>
+                                                                        <div class="mb-3 text-start">
+                                                                            <label class="form-label fw-bold">Select New Logo</label>
+                                                                            <input type="file" name="logo" class="form-control" required>
+                                                                            <small class="text-muted">JPG, PNG, WEBP only.</small>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <button type="submit" name="admin_change_logo" class="btn btn-primary">Update Logo</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -1586,8 +1757,8 @@ if (isset($_POST['update_course_limit'])) {
                                                             <a href="?approve_job=<?= $j['id'] ?>" class="btn btn-modern btn-success btn-sm">
                                                                 <i class="fas fa-check"></i> Approve
                                                             </a>
-                                                            <a href="?decline_job=<?= $j['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Delete this job post?')">
-                                                                <i class="fas fa-times"></i> Decline
+                                                            <a href="?admin_delete_job=<?= $j['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Careful! This will delete the job and all applications. Proceed?')">
+                                                                <i class="fas fa-trash"></i> Delete
                                                             </a>
                                                         </div>
                                                     </td>
@@ -1664,11 +1835,16 @@ if (isset($_POST['update_course_limit'])) {
                                                             <?= htmlspecialchars($j['category']) ?>
                                                         </span>
                                                     </td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#adminEditJobModal<?= $j['id'] ?>">
-                                                            <i class="fas fa-edit"></i> Edit
-                                                        </button>
-                                                    </td>
+                                                     <td>
+                                                         <div class="btn-group" role="group">
+                                                             <button type="button" class="btn btn-modern btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#adminEditJobModal<?= $j['id'] ?>">
+                                                                 <i class="fas fa-edit"></i> Edit
+                                                             </button>
+                                                             <a href="?admin_delete_job=<?= $j['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Careful! This will delete the job and all applications. Proceed?')">
+                                                                 <i class="fas fa-trash"></i> Delete
+                                                             </a>
+                                                         </div>
+                                                     </td>
                                                 </tr>
                                             <?php endwhile; ?>
                                             </tbody>
@@ -1794,23 +1970,94 @@ if (isset($_POST['update_course_limit'])) {
                                                         <strong><?= htmlspecialchars($c['title']) ?></strong>
                                                     </td>
                                                     <td><?= nl2br(htmlspecialchars(substr($c['structure'],0,80))) ?>...</td>
-                                                    <td>
-                                                        <span class="badge-modern bg-success">
-                                                            <?= htmlspecialchars($c['cost']) ?>
-                                                        </span>
-                                                    </td>
+                                                     <td>
+                                                         <span class="badge-modern bg-success p-2">
+                                                             <?php
+                                                             if (is_numeric($c['cost'])) {
+                                                                 echo number_format((float)$c['cost'], 2);
+                                                             } else {
+                                                                 echo htmlspecialchars($c['cost']);
+                                                             }
+                                                             ?>
+                                                         </span>
+                                                     </td>
                                                     <td><?= htmlspecialchars($c['center_name']) ?></td>
                                                     <td>
                                                         <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-modern btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#adminCourseViewModal<?= $c['id'] ?>">
+                                                                <i class="fas fa-eye"></i> View
+                                                            </button>
+                                                            <button type="button" class="btn btn-modern btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#adminEditCourseModal<?= $c['id'] ?>">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </button>
                                                             <a href="?approve_course=<?= $c['id'] ?>" class="btn btn-modern btn-success btn-sm">
                                                                 <i class="fas fa-check"></i> Approve
                                                             </a>
-                                                            <a href="?decline_course=<?= $c['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Delete this course?')">
-                                                                <i class="fas fa-times"></i> Decline
+                                                            <a href="?admin_delete_course=<?= $c['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Careful! This will delete the course and all applications. Proceed?')">
+                                                                <i class="fas fa-trash"></i> Delete
                                                             </a>
                                                         </div>
                                                     </td>
                                                 </tr>
+
+                                                <!-- Admin Edit Course Modal -->
+                                                <div class="modal fade modern-modal" id="adminEditCourseModal<?= $c['id'] ?>" tabindex="-1">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-warning">
+                                                                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Course: <?= htmlspecialchars($c['title']) ?></h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <form action="" method="POST">
+                                                                <div class="modal-body">
+                                                                    <input type="hidden" name="course_id" value="<?= $c['id'] ?>">
+                                                                    <div class="row">
+                                                                        <div class="col-md-12 mb-3">
+                                                                            <label class="form-label fw-bold">Course Title</label>
+                                                                            <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($c['title']) ?>" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <label class="form-label fw-bold">Cost</label>
+                                                                            <input type="text" name="cost" class="form-control" value="<?= htmlspecialchars($c['cost']) ?>" required>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <label class="form-label fw-bold">Duration (weeks)</label>
+                                                                            <input type="number" name="duration" class="form-control" value="<?= htmlspecialchars($c['duration']) ?>" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label fw-bold">Structure</label>
+                                                                        <textarea name="structure" class="form-control" rows="3" required><?= htmlspecialchars($c['structure']) ?></textarea>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label fw-bold">Full Description</label>
+                                                                        <textarea name="description" class="form-control" rows="5" required><?= htmlspecialchars($c['description']) ?></textarea>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label fw-bold">Prerequisites</label>
+                                                                        <input type="text" name="prerequisites" class="form-control" value="<?= htmlspecialchars($c['prerequisites']) ?>">
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label fw-bold">Status</label>
+                                                                        <select name="status" class="form-select" required>
+                                                                            <option value="pending" <?= ($c['status']=='pending')?'selected':'' ?>>Pending</option>
+                                                                            <option value="approved" <?= ($c['status']=='approved')?'selected':'' ?>>Approved</option>
+                                                                            <option value="rejected" <?= ($c['status']=='rejected')?'selected':'' ?>>Rejected</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                    <button type="submit" name="admin_edit_course" class="btn btn-warning">
+                                                                        <i class="fas fa-save me-2"></i>Save Changes
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             <?php endwhile; ?>
                                             </tbody>
                                         </table>
@@ -1853,7 +2100,7 @@ if (isset($_POST['update_course_limit'])) {
                                                     <th>Structure</th>
                                                     <th>Cost</th>
                                                     <th>Training Center</th>
-                                                    <th>Status</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1864,23 +2111,160 @@ if (isset($_POST['update_course_limit'])) {
                                                         <strong><?= htmlspecialchars($c['title']) ?></strong>
                                                     </td>
                                                     <td><?= nl2br(htmlspecialchars(substr($c['structure'],0,100))) ?>...</td>
-                                                    <td>
-                                                        <span class="badge-modern bg-success">
-                                                            <?= htmlspecialchars($c['cost']) ?>
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <div class="d-flex align-items-center">
-                                                            <i class="fas fa-university me-2 text-muted"></i>
-                                                            <?= htmlspecialchars($c['center_name']) ?>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge-modern bg-success">
-                                                            <i class="fas fa-check me-1"></i> Approved
-                                                        </span>
-                                                    </td>
-                                                </tr>
+                                                     <td>
+                                                         <span class="badge-modern bg-success">
+                                                             <?php
+                                                             if (is_numeric($c['cost'])) {
+                                                                 echo number_format((float)$c['cost'], 2);
+                                                             } else {
+                                                                 echo htmlspecialchars($c['cost']);
+                                                             }
+                                                             ?>
+                                                         </span>
+                                                     </td>
+                                                     <td>
+                                                         <div class="d-flex align-items-center">
+                                                             <i class="fas fa-university me-2 text-muted"></i>
+                                                             <?= htmlspecialchars($c['center_name']) ?>
+                                                         </div>
+                                                     </td>
+                                                     <td>
+                                                         <div class="btn-group" role="group">
+                                                             <button type="button" class="btn btn-modern btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#adminCourseViewModalApproved<?= $c['id'] ?>">
+                                                                 <i class="fas fa-eye"></i> View
+                                                             </button>
+                                                             <button type="button" class="btn btn-modern btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#adminEditCourseModalApproved<?= $c['id'] ?>">
+                                                                 <i class="fas fa-edit"></i> Edit
+                                                             </button>
+                                                             <a href="?admin_delete_course=<?= $c['id'] ?>" class="btn btn-modern btn-danger btn-sm" onclick="return confirm('Careful! This will delete the course and all applications. Proceed?')">
+                                                                 <i class="fas fa-trash"></i> Delete
+                                                             </a>
+                                                            
+                                                         </div>
+                                                     </td>
+                                                 </tr>
+
+                                                 <!-- Course View Modal -->
+                                                 <div class="modal fade modern-modal" id="adminCourseViewModalApproved<?= $c['id'] ?>" tabindex="-1">
+                                                     <div class="modal-dialog modal-lg">
+                                                         <div class="modal-content">
+                                                             <div class="modal-header bg-info text-white">
+                                                                 <h5 class="modal-title"><i class="fas fa-graduation-cap me-2"></i>Course Details: <?= htmlspecialchars($c['title']) ?></h5>
+                                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                             </div>
+                                                             <div class="modal-body">
+                                                                 <div class="row mb-4">
+                                                                     <div class="col-md-6">
+                                                                         <h6 class="fw-bold">Course Title:</h6>
+                                                                         <p class="lead text-primary"><?= htmlspecialchars($c['title']) ?></p>
+                                                                     </div>
+                                                                     <div class="col-md-6">
+                                                                         <h6 class="fw-bold">Training Center:</h6>
+                                                                         <p><i class="fas fa-university me-2 text-muted"></i><?= htmlspecialchars($c['center_name']) ?></p>
+                                                                     </div>
+                                                                 </div>
+                                                                 <div class="row mb-3">
+                                                                     <div class="col-md-6">
+                                                                         <h6 class="fw-bold text-success">Cost:</h6>
+                                                                         <p class="fw-bold">
+                                                                             <?php
+                                                                             if (is_numeric($c['cost'])) {
+                                                                                 echo number_format((float)$c['cost'], 2);
+                                                                             } else {
+                                                                                 echo htmlspecialchars($c['cost']);
+                                                                             }
+                                                                             ?>
+                                                                         </p>
+                                                                     </div>
+                                                                     <div class="col-md-6">
+                                                                         <h6 class="fw-bold text-info">Duration:</h6>
+                                                                         <p><?= htmlspecialchars($c['duration']) ?> weeks</p>
+                                                                     </div>
+                                                                 </div>
+                                                                 <hr>
+                                                                 <div class="mb-4">
+                                                                     <h6 class="fw-bold">Course Structure:</h6>
+                                                                     <div class="bg-light p-3 rounded">
+                                                                         <?= nl2br(htmlspecialchars($c['structure'])) ?>
+                                                                     </div>
+                                                                 </div>
+                                                                 <div class="mb-4">
+                                                                     <h6 class="fw-bold">Full Description:</h6>
+                                                                     <p><?= nl2br(htmlspecialchars($c['description'])) ?></p>
+                                                                 </div>
+                                                                 <?php if (!empty($c['prerequisites'])): ?>
+                                                                 <div class="mb-3">
+                                                                     <h6 class="fw-bold text-warning">Prerequisites:</h6>
+                                                                     <p><?= htmlspecialchars($c['prerequisites']) ?></p>
+                                                                 </div>
+                                                                 <?php endif; ?>
+                                                             </div>
+                                                             <div class="modal-footer">
+                                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                 <span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i> Already Approved</span>
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Admin Edit Course Modal Approved -->
+                                                 <div class="modal fade modern-modal" id="adminEditCourseModalApproved<?= $c['id'] ?>" tabindex="-1">
+                                                     <div class="modal-dialog modal-lg">
+                                                         <div class="modal-content">
+                                                             <div class="modal-header bg-warning">
+                                                                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Course: <?= htmlspecialchars($c['title']) ?></h5>
+                                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                             </div>
+                                                             <form action="" method="POST">
+                                                                 <div class="modal-body">
+                                                                     <input type="hidden" name="course_id" value="<?= $c['id'] ?>">
+                                                                     <div class="row">
+                                                                         <div class="col-md-12 mb-3">
+                                                                             <label class="form-label fw-bold">Course Title</label>
+                                                                             <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($c['title']) ?>" required>
+                                                                         </div>
+                                                                     </div>
+                                                                     <div class="row">
+                                                                         <div class="col-md-6 mb-3">
+                                                                             <label class="form-label fw-bold">Cost</label>
+                                                                             <input type="text" name="cost" class="form-control" value="<?= htmlspecialchars($c['cost']) ?>" required>
+                                                                         </div>
+                                                                         <div class="col-md-6 mb-3">
+                                                                             <label class="form-label fw-bold">Duration (weeks)</label>
+                                                                             <input type="number" name="duration" class="form-control" value="<?= htmlspecialchars($c['duration']) ?>" required>
+                                                                         </div>
+                                                                     </div>
+                                                                     <div class="mb-3">
+                                                                         <label class="form-label fw-bold">Structure</label>
+                                                                         <textarea name="structure" class="form-control" rows="3" required><?= htmlspecialchars($c['structure']) ?></textarea>
+                                                                     </div>
+                                                                     <div class="mb-3">
+                                                                         <label class="form-label fw-bold">Full Description</label>
+                                                                         <textarea name="description" class="form-control" rows="5" required><?= htmlspecialchars($c['description']) ?></textarea>
+                                                                     </div>
+                                                                     <div class="mb-3">
+                                                                         <label class="form-label fw-bold">Prerequisites</label>
+                                                                         <input type="text" name="prerequisites" class="form-control" value="<?= htmlspecialchars($c['prerequisites']) ?>">
+                                                                     </div>
+                                                                     <div class="mb-3">
+                                                                         <label class="form-label fw-bold">Status</label>
+                                                                         <select name="status" class="form-select" required>
+                                                                             <option value="pending" <?= ($c['status']=='pending')?'selected':'' ?>>Pending</option>
+                                                                             <option value="approved" <?= ($c['status']=='approved')?'selected':'' ?>>Approved</option>
+                                                                             <option value="rejected" <?= ($c['status']=='rejected')?'selected':'' ?>>Rejected</option>
+                                                                         </select>
+                                                                     </div>
+                                                                 </div>
+                                                                 <div class="modal-footer">
+                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                     <button type="submit" name="admin_edit_course" class="btn btn-warning">
+                                                                         <i class="fas fa-save me-2"></i>Save Changes
+                                                                     </button>
+                                                                 </div>
+                                                             </form>
+                                                         </div>
+                                                     </div>
+                                                 </div>
                                             <?php endwhile; ?>
                                             </tbody>
                                         </table>

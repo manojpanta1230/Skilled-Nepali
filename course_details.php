@@ -508,7 +508,7 @@ body {
                 <!-- Cost -->
                 <div class="course-meta-item">
                     <div class="meta-icon">
-                        <i class="fas fa-dollar-sign"></i>
+                       <i style="font-size:24px" class="fa">&#xf0d6;</i>
                     </div>
                     <div class="meta-content">
                         <h6>Course Fee</h6>

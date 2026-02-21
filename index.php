@@ -232,9 +232,9 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
         <div class="container">
             <div class="section-title text-center mb-5 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="sub-style">
-                    <h2 class="sub-title text-primary px-3">Why Choose Us</h2>
+                    <h2 class="sub-title text-primary px-3">Why Choose SkilledNepali?</h2>
                 </div>
-                <h2 class="display-5 mb-4">Offer Tailor Made Services That Our Client Requires</h2>
+                <h2 class="display-5 mb-4">Empowering Nepalese Workforce for GCC Opportunities</h2>
             </div>
             <div class="row g-4 justify-content-center text-center">
                 <div class="col-md-6 col-lg-6 col-xl-3 wow fadeInUp" data-wow-delay="0.1s">
@@ -243,9 +243,9 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                             <i class="fas fa-dollar-sign fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h2 class="mb-3">Cost-Effective</h2>
-                            <p class="mb-3" style="text-align: justify;">We provide affordable solutions without compromising on quality. Our services are designed to fit your budget while ensuring you get maximum value. With transparent pricing and no hidden costs, you can achieve your goals without financial strain.</p>
-                            <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
+                            <h2 class="mb-3">Tailored Career Opportunities
+</h2>
+                            <p class="mb-3" style="text-align: justify;">We match your skills, experience, and career goals with the right job openings in Facility Management, Hospitality, and Retail sectors.</p>
                         </div>
                     </div>
                 </div>
@@ -255,9 +255,8 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                             <i class="fab fa-cc-visa fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h2 class="mb-3">Visa Assistance</h2>
-                            <p class="mb-3 " style="text-align: justify;">Navigating visa procedures can be challenging, but our expert team is here to guide you every step of the way. From document preparation to application submission, we ensure accuracy and compliance, making your visa process smooth and stress-free.</p>
-                            <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
+                            <h2 class="mb-3">Visa & Documentation Support</h2>
+                            <p class="mb-3 " style="text-align: justify;">From application to deployment, we guide candidates through documentation, visa processes, and onboarding steps.</p>
                         </div>
                     </div>
                 </div>
@@ -267,9 +266,8 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                             <i class="fas fa-atlas fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h2 class="mb-3">Faster Processing</h2>
-                            <p class="mb-3" style="text-align: justify;">Time is valuable, and we understand the urgency of your needs. Our streamlined processes and expert handling reduce delays, ensuring faster turnaround times. With us, you can move forward confidently without unnecessary waiting.</p>
-                            <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
+                            <h2 class="mb-3">Faster Interview & Placement</h2>
+                            <p class="mb-3" style="text-align: justify;">Our active employer network enables quicker interview scheduling and faster hiring decisions.</p>
                         </div>
                     </div>
                 </div>
@@ -279,15 +277,12 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                             <i class="fas fa-users fa-4x text-primary"></i>
                         </div>
                         <div class="feature-content d-flex flex-column">
-                            <h2 class="mb-3">Direct Interviews</h2>
-                            <p class="mb-3" style="text-align: justify;">We connect you directly with trusted employers and institutions, eliminating unnecessary intermediaries. This direct approach enhances transparency, builds trust, and increases your chances of success in securing opportunities.</p>
-                            <a class="btn btn-secondary rounded-pill" href="#">Read More<i class="fas fa-arrow-right ms-2"></i></a>
+                            <h2 class="mb-3">Direct Employer Access</h2>
+                            <p class="mb-3" style="text-align: justify;">We arrange direct interviews with employers, increasing transparency and improving selection chances.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <a class="btn btn-primary  rounded-pill py-3 px-5 wow fadeInUp" data-wow-delay="0.1s" href="#">More Features</a>
-                </div>
+                
             </div>
         </div>
     </div>

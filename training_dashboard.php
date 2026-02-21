@@ -1,3 +1,4 @@
+
 <?php
 require_once 'config.php';
 
@@ -101,7 +102,30 @@ if (isset($_POST['upload_image'])) {
     header("Location: training_dashboard.php");
     exit();
 }
-
+// Handle profile update for training center
+if (isset($_POST['update_profile'])) {
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
+    $company = trim($_POST['company']);
+    $stmt = $mysqli->prepare("UPDATE users SET name=?, email=?, phone=?, address=?, company=? WHERE id=?");
+    $stmt->bind_param("sssssi", $name, $email, $phone, $address, $company, $u['id']);
+    if ($stmt->execute()) {
+        $_SESSION['success_message'] = "Profile updated successfully!";
+        // Update $u for current session
+        $u['name'] = $name;
+        $u['email'] = $email;
+        $u['phone'] = $phone;
+        $u['address'] = $address;
+        $u['company'] = $company;
+    } else {
+        $_SESSION['error_message'] = "Failed to update profile.";
+    }
+    $stmt->close();
+    header("Location: training_dashboard.php");
+    exit();
+}
 // Handle course posting WITH LIMIT CHECK
 // Handle course posting WITH LIMIT CHECK
 if (isset($_POST['submit_course'])) {
@@ -223,6 +247,33 @@ if (isset($_POST['submit_course'])) {
             $mysqli->rollback();
             $_SESSION['error_message'] = "❌ Error: " . $e->getMessage();
         }
+    }
+    header("Location: training_dashboard.php?tab=my_courses");
+    exit();
+}
+
+// Handle course update
+if (isset($_POST['update_course'])) {
+    $course_id = intval($_POST['edit_course_id']);
+    $title = trim($_POST['edit_title']);
+    $cost = trim($_POST['edit_cost']);
+    $duration = trim($_POST['edit_duration']);
+    $description = trim($_POST['edit_description']);
+    $structure = trim($_POST['edit_structure']);
+    $prerequisites = trim($_POST['edit_prerequisites']);
+
+    if (!$title || !$structure || !$cost) {
+        $_SESSION['error_message'] = "Please fill in all required fields.";
+    } else {
+        $stmt = $mysqli->prepare("UPDATE courses SET title = ?, cost = ?, duration = ?, description = ?, structure = ?, prerequisites = ?, status = CASE WHEN status = 'approved' THEN 'approved' ELSE 'pending' END WHERE id = ? AND training_center_id = ?");
+        $stmt->bind_param("ssssssii", $title, $cost, $duration, $description, $structure, $prerequisites, $course_id, $center_id);
+
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "✅ Course updated successfully!";
+        } else {
+            $_SESSION['error_message'] = "❌ Error updating course: " . $mysqli->error;
+        }
+        $stmt->close();
     }
     header("Location: training_dashboard.php?tab=my_courses");
     exit();
@@ -1282,6 +1333,52 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
                 </div>
             </div>
         </div>
+                                            <!-- Edit Course Modal -->
+                                            <!-- <div class="modal fade" id="editCourseModal<?= $course['id'] ?>" tabindex="-1">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <form method="post" action="training_dashboard.php?tab=my_courses">
+                                                            <div class="modal-header bg-primary text-white">
+                                                                <h5 class="modal-title">Edit Course Details</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="edit_course_id" value="<?= $course['id'] ?>">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Course Title</label>
+                                                                    <input type="text" name="edit_title" class="form-control" value="<?= htmlspecialchars($course['title']) ?>" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Cost (in USD)</label>
+                                                                    <input type="text" name="edit_cost" class="form-control" value="<?= htmlspecialchars($course['cost']) ?>" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Duration</label>
+                                                                    <input type="text" name="edit_duration" class="form-control" value="<?= htmlspecialchars($course['duration']) ?>">
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Course Description</label>
+                                                                    <textarea name="edit_description" class="form-control" rows="4"><?= htmlspecialchars($course['description']) ?></textarea>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Course Structure</label>
+                                                                    <textarea name="edit_structure" class="form-control" rows="6" required><?= htmlspecialchars($course['structure']) ?></textarea>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-semibold">Prerequisites</label>
+                                                                    <input type="text" name="edit_prerequisites" class="form-control" value="<?= htmlspecialchars($course['prerequisites']) ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" name="update_course" class="btn btn-success">
+                                                                    <i class="fas fa-save me-2"></i>Save Changes
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div> -->
         <div class="limit-alert-footer">
             <button class="btn btn-outline-modern btn-modern" onclick="closeLimitModal()">
                 <i class="fas fa-times me-2"></i> Close
@@ -1374,6 +1471,14 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
                     <?php if ($total_applications > 0): ?>
                         <span class="badge bg-success rounded-pill"><?= $total_applications ?></span>
                     <?php endif; ?>
+                </a>
+            </div>
+
+            <!-- Logout -->
+            <div class="sidebar-item">
+                <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#manageProfileModal">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Manage Profile</span>
                 </a>
             </div>
 
@@ -1488,7 +1593,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
                         <i class="fas fa-chevron-right ms-auto"></i>
                     </a>
 
-                    <a href="training_dashboard.php?tab=manage_profile" class="action-card manage-profile">
+                    <a href="#" class="action-card manage-profile" data-bs-toggle="modal" data-bs-target="#manageProfileModal">
                         <div class="action-icon">
                             <i class="fas fa-user-cog"></i>
                         </div>
@@ -1890,7 +1995,15 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
                                                     <?= nl2br(htmlspecialchars(substr($course['structure'], 0, 100))) ?>...
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-success">$<?= number_format($course['cost'], 2) ?></span>
+                                                    <span class="badge bg-success">
+                                                        <?php
+                                                        if (is_numeric($course['cost'])) {
+                                                            echo number_format((float)$course['cost'], 2);
+                                                        } else {
+                                                            echo htmlspecialchars($course['cost']);
+                                                        }
+                                                        ?>
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <?php
@@ -1906,63 +2019,135 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-modern" data-bs-toggle="modal" data-bs-target="#courseModal<?= $course['id'] ?>">
+                                                    <button class="btn btn-sm btn-info me-1" data-bs-toggle="modal" data-bs-target="#courseViewModal<?= $course['id'] ?>">
                                                         <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCourseModal<?= $course['id'] ?>">
+                                                        <i class="fas fa-edit"></i> Edit
                                                     </button>
                                                 </td>
                                             </tr>
+                                        <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                            <!-- Course Details Modal -->
-                                            <div class="modal fade" id="courseModal<?= $course['id'] ?>" tabindex="-1">
-                                                <div class="modal-dialog modal-lg">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Course Details</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="row mb-3">
-                                                                <div class="col-md-8">
-                                                                    <h4><?= htmlspecialchars($course['title']) ?></h4>
-                                                                    <span class="course-status-badge <?= $status_class ?>">
-                                                                        <?= ucfirst($course['status']) ?>
-                                                                    </span>
-                                                                </div>
-                                                                <div class="col-md-4 text-end">
-                                                                    <h3 class="text-success">$<?= number_format($course['cost'], 2) ?></h3>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="mb-4">
-                                                                <h6 class="text-muted mb-2">Course Structure</h6>
-                                                                <div class="bg-light p-3 rounded">
-                                                                    <?= nl2br(htmlspecialchars($course['structure'])) ?>
-                                                                </div>
-                                                            </div>
-
-                                                            <?php if (!empty($course['description'])): ?>
-                                                                <div class="mb-4">
-                                                                    <h6 class="text-muted mb-2">Description</h6>
-                                                                    <p><?= nl2br(htmlspecialchars($course['description'])) ?></p>
-                                                                </div>
-                                                            <?php endif; ?>
-
-                                                            <?php if (!empty($course['duration'])): ?>
-                                                                <div class="col-md-6">
-                                                                    <p><i class="fas fa-clock me-2 text-success"></i>
-                                                                        <strong>Duration:</strong> <?= $course['duration'] ?> weeks
-                                                                    </p>
-                                                                </div>
-                                                            <?php endif; ?>
-                                                        </div>
+                            <!-- Course Modals -->
+                            <?php 
+                            $courses->data_seek(0);
+                            while ($course = $courses->fetch_assoc()): 
+                            ?>
+                                <div class="modal fade" id="editCourseModal<?= $course['id'] ?>" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content text-dark">
+                                            <form method="post" action="training_dashboard.php?tab=my_courses">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title">Edit Course Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="edit_course_id" value="<?= $course['id'] ?>">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Course Title</label>
+                                                        <input type="text" name="edit_title" class="form-control" value="<?= htmlspecialchars($course['title']) ?>" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Cost</label>
+                                                        <input type="text" name="edit_cost" class="form-control" value="<?= htmlspecialchars($course['cost']) ?>" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Duration</label>
+                                                        <input type="text" name="edit_duration" class="form-control" value="<?= htmlspecialchars($course['duration']) ?>">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Course Description</label>
+                                                        <textarea name="edit_description" class="form-control" rows="4"><?= htmlspecialchars($course['description']) ?></textarea>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Course Structure</label>
+                                                        <textarea name="edit_structure" class="form-control" rows="6" required><?= htmlspecialchars($course['structure']) ?></textarea>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Prerequisites</label>
+                                                        <input type="text" name="edit_prerequisites" class="form-control" value="<?= htmlspecialchars($course['prerequisites']) ?>">
                                                     </div>
                                                 </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" name="update_course" class="btn btn-success">
+                                                        <i class="fas fa-save me-2"></i>Save Changes
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Course View Modal -->
+                                <div class="modal fade" id="courseViewModal<?= $course['id'] ?>" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content text-dark">
+                                            <div class="modal-header bg-info text-white">
+                                                <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Course Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
-                            </div>
-                        <?php endwhile; ?>
-                        </tbody>
-                        </table>
-                    </div>
+                                            <div class="modal-body">
+                                                <div class="mb-4">
+                                                    <h4 class="text-primary"><?= htmlspecialchars($course['title']) ?></h4>
+                                                    <?php
+                                                    $status_class = 'status-pending';
+                                                    if ($course['status'] == 'approved') {
+                                                        $status_class = 'status-approved';
+                                                    } elseif ($course['status'] == 'rejected') {
+                                                        $status_class = 'status-rejected';
+                                                    }
+                                                    ?>
+                                                    <span class="course-status-badge <?= $status_class ?>">
+                                                        <?= ucfirst($course['status']) ?>
+                                                    </span>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <h6><strong>Cost:</strong></h6>
+                                                        <p class="text-success fw-bold">
+                                                            <?php
+                                                            if (is_numeric($course['cost'])) {
+                                                                echo number_format((float)$course['cost'], 2);
+                                                            } else {
+                                                                echo htmlspecialchars($course['cost']);
+                                                            }
+                                                            ?>
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6><strong>Duration:</strong></h6>
+                                                        <p><?= htmlspecialchars($course['duration']) ?> weeks</p>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <h6><strong>Course Structure:</strong></h6>
+                                                    <div class="bg-light p-3 rounded">
+                                                        <?= nl2br(htmlspecialchars($course['structure'])) ?>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <h6><strong>Course Description:</strong></h6>
+                                                    <p><?= nl2br(htmlspecialchars($course['description'])) ?></p>
+                                                </div>
+                                                <?php if (!empty($course['prerequisites'])): ?>
+                                                <div class="mb-4">
+                                                    <h6><strong>Prerequisites:</strong></h6>
+                                                    <p><?= htmlspecialchars($course['prerequisites']) ?></p>
+                                                </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
                 <?php else: ?>
                     <div class="empty-state">
                         <i class="fas fa-book-open"></i>
@@ -2055,6 +2240,48 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'training_dashboard';
     <?php endif; ?>
     </div>
     </main>
+
+    <!-- Manage Profile Modal -->
+    <div class="modal fade" id="manageProfileModal" tabindex="-1" aria-labelledby="manageProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content text-dark">
+                <form method="post" action="training_dashboard.php">
+                    <div class="modal-header bg-primary text-white">
+                        <h4 class="modal-title" id="manageProfileModalLabel"><i class="fas fa-user-cog me-2"></i>Manage Profile</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Full Name</label>
+                            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($u['name']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($u['email']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone</label>
+                            <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($u['phone'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <input type="text" name="address" class="form-control" value="<?= htmlspecialchars($u['address'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Company/Organization</label>
+                            <input type="text" name="company" class="form-control" value="<?= htmlspecialchars($u['company'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_profile" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

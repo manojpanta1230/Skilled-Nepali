@@ -509,7 +509,7 @@ body {
                 <?php if (!isEmptyString($job['salary'])): ?>
                 <div class="job-meta-item">
                     <div class="meta-icon">
-                        <i class="fas fa-dollar-sign"></i>
+                        <i style="font-size:24px" class="fa">&#xf0d6;</i>
                     </div>
                     <div class="meta-content">
                         <h6>Salary Range</h6>
