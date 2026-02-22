@@ -232,7 +232,7 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
         <div class="container">
             <div class="section-title text-center mb-5 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="sub-style">
-                    <h2 class="sub-title text-primary px-3">Why Choose SkilledNepali?</h2>
+                    <p class="sub-title text-primary px-3">Why Choose SkilledNepali?</p>
                 </div>
                 <h2 class="display-5 mb-4">Empowering Nepalese Workforce for GCC Opportunities</h2>
             </div>
@@ -288,18 +288,75 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
     </div>
     <!-- Features End -->
 
-
+    <!-- Vision, Mission, Promise, Why SkilledNepali Exists Section Start -->
+    <div class="container-fluid py-5 bg-light">
+        <div class="container">
+            <div class="section-title text-center mb-5 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="sub-style">
+                    <h2 class="sub-title text-primary px-3 mb-2">OUR VISION</h2>
+                </div>
+                <p class="lead mb-4" style="font-size: 1.2rem;">To see every Nepali workforce skilled, respected, and well paid globally.</p>
+            </div>
+            <div class="row g-4 justify-content-center text-center">
+                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.2s">
+                    <div class="feature-item text-center p-4 shadow-sm bg-white rounded h-100 d-flex flex-column align-items-center justify-content-between" style="min-height: 340px;">
+                        <div class="feature-icon p-3 mb-4">
+                            <i class="fas fa-star fa-3x text-primary"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4 class="mb-3">Our Mission</h4>
+                            <div class="d-flex flex-column align-items-center">
+                                <p class="mb-2">Empower Nepali talent for global opportunities.</p>
+                                <p class="mb-2">Bridge skill gaps and connect with genuine employers.</p>
+                                <p class="mb-2">Promote ethical recruitment and fair wages.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="feature-item text-center p-4 shadow-sm bg-white rounded h-100 d-flex flex-column align-items-center justify-content-between" style="min-height: 340px;">
+                        <div class="feature-icon p-3 mb-4">
+                            <i class="fas fa-heart fa-3x text-primary"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4 class="mb-3">Our Promise</h4>
+                            <div class="d-flex flex-column align-items-center">
+                                <p class="mb-2">Genuine support for every job seeker.</p>
+                                <p class="mb-2">Transparent process and reliable guidance.</p>
+                                <p class="mb-2">Continuous improvement and trust.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 wow fadeInUp" data-wow-delay="0.4s">
+                    <div class="feature-item text-center p-4 shadow-sm bg-white rounded h-100 d-flex flex-column align-items-center justify-content-between" style="min-height: 340px;">
+                        <div class="feature-icon p-3 mb-4">
+                            <i class="fas fa-lightbulb fa-3x text-primary"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4 class="mb-3">Why Skilled Nepali Exists</h4>
+                            <div class="d-flex flex-column align-items-center">
+                                <p class="mb-2">To uplift Nepali workforce globally.</p>
+                                <p class="mb-2">To ensure respect, skill, and fair pay.</p>
+                                <p class="mb-2">To create lasting impact for Nepal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Vision, Mission, Promise, Why SkilledNepali Exists Section End -->
 
     <!-- Countries We Offer Start -->
    
-
     <div class="container-fluid country overflow-hidden py-5">
         <div class="container">
             <div class="section-title text-center wow fadeInUp" data-wow-delay="0.1s" style="margin-bottom: 70px;">
                 <div class="sub-style">
-                    <h2 class="sub-title text-primary px-3">COUNTRIES WE OFFER</h2>
+                    <p class="sub-title text-primary px-3">COUNTRIES WE OFFER</p>
                 </div>
-                <p class="display-5 mb-4">Career Counselling and Guidance for following Countries</p>
+                <h2 class="display-5 mb-4">Career Counselling and Guidance for following Countries</h2>
             </div>
 
             <!-- Countries Grid -->
@@ -318,7 +375,6 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-4 mb-5 mb-lg-0 country-item-page" data-page="1">
                     <div class="country-item">
                         <div class="rounded overflow-hidden">
@@ -332,7 +388,6 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-4 mb-5 mb-lg-0 country-item-page" data-page="1">
                     <div class="country-item">
                         <div class="rounded overflow-hidden">
@@ -346,7 +401,6 @@ while (count($loopLogos) < $minLogos && count($partnerLogos) > 0) {
                         </div>
                     </div>
                 </div>
-
                 <!-- Page 2 -->
                 <div class="col-lg-4 mb-5 mb-lg-0 country-item-page" data-page="2" style="display:none;">
                     <div class="country-item">
